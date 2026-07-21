@@ -1714,4 +1714,16 @@ class Clients_model extends App_Model
 
         return $this->db->get(db_prefix() . 'contacts')->result_array();
     }
+    public function get_credit_days($client_id)
+    {
+        $this->db->select('credit_days');
+        $this->db->from(db_prefix() . 'clients');
+        $this->db->where('userid', $client_id);
+        $result = $this->db->get()->row();
+        if ($result) {
+            return $result->credit_days;
+        }
+
+        return false;
+    }
 }

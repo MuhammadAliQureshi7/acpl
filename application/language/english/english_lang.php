@@ -3927,3 +3927,4 @@ $lang['filter_operator_less_or_equal'] = 'less or equal';
 $lang['no_filters_found'] = 'No saved filters, get started by creating a new filter.';
 
 $lang['staff_logged_in_public_ticket_warning'] = 'You are logged in a staff member, if you want to reply to the ticket as staff, you must make reply via the admin area.';
+$lang['credit_days'] = 'Credit Days';

@@ -34,7 +34,7 @@
                 <div class="f_client_id">
                     <div class="form-group select-placeholder">
                         <label for="clientid" class="control-label"><?php echo _l('invoice_select_customer'); ?></label>
-                        <select id="clientid" name="clientid" data-live-search="true" data-width="100%" class="ajax-search<?php if (isset($invoice) && empty($invoice->clientid)) {
+                        <select id="clientid" onchange="update_due_date()" name="clientid" data-live-search="true" data-width="100%" class="ajax-search<?php if (isset($invoice) && empty($invoice->clientid)) {
                 echo ' customer-removed';
             } ?>" data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>">
                             <?php $selected = (isset($invoice) ? $invoice->clientid : '');
@@ -230,6 +230,7 @@
                   if (isset($invoice) && $invoice->recurring > 0 && $invoice->last_recurring_date != null) {
                       $date_attrs['disabled'] = true;
                   }
+                  $date_attrs['onchange'] = 'update_due_date()';
                   ?>
                         <?php echo render_date_input('date', 'invoice_add_edit_date', $value, $date_attrs); ?>
                     </div>

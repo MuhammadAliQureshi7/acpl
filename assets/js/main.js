@@ -2517,7 +2517,7 @@ $(function () {
 
   $("body").on(
     "change",
-    'div.invoice input[name="date"], div.estimate input[name="date"], div.proposal input[name="date"]',
+    'div.estimate input[name="date"], div.proposal input[name="date"]',
     function () {
       var date = $(this).val();
       do_prefix_year(date);

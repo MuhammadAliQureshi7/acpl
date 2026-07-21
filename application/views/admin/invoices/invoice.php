@@ -34,7 +34,17 @@ $(function() {
     init_ajax_project_search_by_customer_id();
     // Maybe items ajax search
     init_ajax_search('items', '#item_select.ajax-search', undefined, admin_url + 'items/search');
+    
 });
+function update_due_date() {
+    var date = $('input[name="date"]').val();
+    var clientid = $('select[name="clientid"]').val();
+    if (date && clientid) {
+        requestGetJSON('invoices/get_due_date_by_client_creditdays/' + clientid + '/' + date).done(function(response) {
+            $('input[name="duedate"]').val(response);
+        });
+    }       
+}
 </script>
 </body>
 

@@ -94,22 +94,14 @@
                         <?php $value = (isset($client) ? $client->phonenumber : ''); ?>
                         <?php echo render_input('phonenumber', 'client_phonenumber', $value); ?>
                         <?php hooks()->do_action('after_customer_profile_company_phone', $client ?? null); ?>
-                        <?php if ((isset($client) && empty($client->website)) || !isset($client)) {
-                      $value = (isset($client) ? $client->website : '');
-                      echo render_input('website', 'client_website', $value);
+                        <?php if ((isset($client) && empty($client->credit_days)) || !isset($client)) {
+                      $value = (isset($client) ? $client->credit_days : '');
+                      echo render_input('credit_days', 'credit_days', $value, 'number', ['min' => 0, 'max' => 365]);
                   } else { ?>
                         <div class="form-group">
-                            <label for="website"><?php echo _l('client_website'); ?></label>
-                            <div class="input-group">
-                                <input type="text" name="website" id="website" value="<?php echo $client->website; ?>"
+                            <label for="credit_days"><?php echo _l('credit_days'); ?></label>
+                            <input type="number" name="credit_days" id="credit_days" min="0" max="365" value="<?php echo $client->credit_days; ?>"
                                     class="form-control">
-                                <span class="input-group-btn">
-                                    <a href="<?php echo maybe_add_http($client->website); ?>" class="btn btn-default"
-                                        target="_blank" tabindex="-1">
-                                        <i class="fa fa-globe"></i></a>
-                                </span>
-
-                            </div>
                         </div>
                         <?php }
                      $selected = [];

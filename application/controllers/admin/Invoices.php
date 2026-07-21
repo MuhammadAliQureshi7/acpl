@@ -744,4 +744,19 @@ class Invoices extends AdminController
             }
         }
     }
+    public function get_due_date_by_client_creditdays($clientid, $date)
+    {
+        if ($this->input->is_ajax_request()) {
+            $duedate = '';
+            if ($clientid && $date) {
+                $credit_days = $this->clients_model->get_credit_days($clientid);
+                if ($credit_days != 0) {
+                    $date    = to_sql_date($date);
+                    $d       = date('Y-m-d', strtotime('+' . $credit_days . ' DAY', strtotime($date)));
+                    $duedate = _d($d);
+                }
+            }
+            echo json_encode($duedate);
+        }
+    }
 }
