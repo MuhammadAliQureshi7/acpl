@@ -38,6 +38,7 @@
                         <?php } ?>
                     </div>
                   </div>
+                  
                   <div class="row">
                     <div class=" col-md-3">
                       <div class="form-group">
@@ -413,13 +414,13 @@
                        <span class="glyphicon glyphicon-align-justify"></span>&nbsp;<?php echo _l('general_infor'); ?>
                        </a>
                     </li>
-                    <li role="presentation">
+                    <!-- <li role="presentation">
                        <a href="#interview_evaluate" aria-controls="interview_evaluate" role="tab" data-toggle="tab" aria-controls="interview_evaluate">
                        <i class="fa fa-group"></i>&nbsp;<?php echo _l('properties'); ?>
                        </a>
                     </li>
 
-                    <!-- TODO -->
+                    
                     <li role="presentation">
                        <a href="#variation" aria-controls="variation" role="tab" data-toggle="tab" aria-controls="variation">
                        <i class="fa fa-bars menu-icon"></i>&nbsp;<?php echo _l('variation'); ?>
@@ -430,7 +431,7 @@
                        <a href="#custom_fields" aria-controls="custom_fields" role="tab" data-toggle="tab" aria-controls="custom_fields">
                        <i class="fa fa-bars menu-icon"></i>&nbsp;<?php echo _l('custom_fields'); ?>
                        </a>
-                    </li>
+                    </li> -->
                     
                     
                    </ul>
@@ -441,19 +442,28 @@
               
                 <!-- interview process start -->
                   <div role="tabpanel" class="tab-pane active" id="interview_infor">
-                        <div class="row parent_item_hide">
+                        <!-- <div class="row parent_item_hide">
                           <div class=" col-md-12">
                             <div id="parent_item_html">
                               
                             </div>
-                            <!-- <div class="form-group">
+                            <div class="form-group">
                               <label for="parent_id" class="control-label"><?php echo _l('parent_item'); ?></label>
                               <select name="parent_id" id="parent_id" class="selectpicker" data-live-search="true" data-width="100%" data-none-selected-text="">
                                 
                               </select>
-                            </div> -->
+                            </div>
 
                           </div>
+                        </div> -->
+                        <div class="row">
+                           <div class="col-md-6">
+                              <?php echo render_select('group_id',$commodity_groups,array('id','name'),'commodity_group'); ?>
+                            </div>
+                            <div class="col-md-6">
+                              <?php echo render_select('commodity_type',$commodity_types,array('commodity_type_id','commondity_name'),'commodity_type'); ?>
+                            </div>
+                           
                         </div>
 
                             <div class="row">
@@ -479,7 +489,7 @@
                               </div>
                             </div>
 
-                            <div class="row">
+                            <!-- <div class="row">
                               <div class="col-md-12">
                                   <div class="form-group" id="tags_value">
                                     <div id="inputTagsWrapper">
@@ -489,7 +499,7 @@
                                  </div>
 
                               </div>
-                            </div>  
+                            </div>   -->
 
                             <div class="row">
                               <div class="col-md-12">
@@ -497,7 +507,7 @@
                               </div>
                             </div>
 
-                            <!--  add warehouse for item-->
+                             <!-- add warehouse for item
                             <div class="row">
                               <div class="col-md-12">
                                   <?php echo render_select('warehouse_id',$warehouses,array('warehouse_id',array('warehouse_code','warehouse_name')),'warehouse_name'); ?>
@@ -505,10 +515,7 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6">
-                                     <?php echo render_select('commodity_type',$commodity_types,array('commodity_type_id','commondity_name'),'commodity_type'); ?>
-
-                                </div>
+                                
                                  <div class="col-md-6">
                                      <?php echo render_select('unit_id',$units,array('unit_type_id','unit_name'),'units'); ?>
                                 </div>
@@ -517,9 +524,7 @@
 
                              <div class="row">
                               
-                                <div class="col-md-6">
-                                     <?php echo render_select('group_id',$commodity_groups,array('id','name'),'commodity_group'); ?>
-                                </div>
+                                
                                  <div class="col-md-6">
                                      <?php echo render_select('sub_group',$sub_groups,array('id','sub_group_name'),'sub_group'); ?>
                                 </div>
@@ -571,7 +576,7 @@
 
                             <div id="images_old_preview">
                               
-                            </div>
+                            </div> -->
 
                         
                   </div>

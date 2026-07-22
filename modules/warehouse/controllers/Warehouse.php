@@ -587,7 +587,7 @@ class warehouse extends AdminController {
             $data['items']     = [];
             $data['ajaxItems'] = true;
         }
-
+		
 		$data['proposal_id'] = $id;
 		$this->load->view('commodity_list', $data);
 	}

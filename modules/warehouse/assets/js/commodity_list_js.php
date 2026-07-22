@@ -70,8 +70,8 @@
 
     appValidateForm($("body").find('.commodity_list-add-edit'), {
       'commodity_code': 'required',
-      'unit_id': 'required',
-      'rate': 'required',
+      // 'unit_id': 'required',
+      // 'rate': 'required',
     },expenseSubmitHandler);
 
     $(".checkbox #filter_all_simple_variation").change(function() {

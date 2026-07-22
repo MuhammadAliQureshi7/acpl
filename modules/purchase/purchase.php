@@ -105,13 +105,13 @@ function purchase_module_init_menu_items()
         $module = $CI->db->get(db_prefix().'modules')->row();
 
        
-           $CI->app_menu->add_sidebar_children_item('purchase', [
-            'slug'     => 'purchase-items',
-            'name'     => _l('items'),
-            'icon'     => 'fa fa-clone menu-icon',
-            'href'     => admin_url('purchase/items'),
-            'position' => 1,
-            ]);
+        //    $CI->app_menu->add_sidebar_children_item('purchase', [
+        //     'slug'     => 'purchase-items',
+        //     'name'     => _l('items'),
+        //     'icon'     => 'fa fa-clone menu-icon',
+        //     'href'     => admin_url('purchase/items'),
+        //     'position' => 1,
+        //     ]);
       
         
 
@@ -123,52 +123,59 @@ function purchase_module_init_menu_items()
             'position' => 2,
         ]);
 
-        $CI->app_menu->add_sidebar_children_item('purchase', [
-            'slug'     => 'vendors-items',
-            'name'     => _l('vendor_item'),
-            'icon'     => 'fa fa-newspaper-o',
-            'href'     => admin_url('purchase/vendor_items'),
-            'position' => 3,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('purchase', [
+        //     'slug'     => 'vendors-items',
+        //     'name'     => _l('vendor_item'),
+        //     'icon'     => 'fa fa-newspaper-o',
+        //     'href'     => admin_url('purchase/vendor_items'),
+        //     'position' => 3,
+        // ]);
 
-        $CI->app_menu->add_sidebar_children_item('purchase', [
-            'slug'     => 'purchase-request',
-            'name'     => _l('purchase_request'),
-            'icon'     => 'fa fa-shopping-basket',
-            'href'     => admin_url('purchase/purchase_request'),
-            'position' => 4,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('purchase', [
+        //     'slug'     => 'purchase-request',
+        //     'name'     => _l('purchase_request'),
+        //     'icon'     => 'fa fa-shopping-basket',
+        //     'href'     => admin_url('purchase/purchase_request'),
+        //     'position' => 4,
+        // ]);
 
-        $CI->app_menu->add_sidebar_children_item('purchase', [
-            'slug'     => 'purchase-quotation',
-            'name'     => _l('quotations'),
-            'icon'     => 'fa fa-file-powerpoint-o',
-            'href'     => admin_url('purchase/quotations'),
-            'position' => 5,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('purchase', [
+        //     'slug'     => 'purchase-quotation',
+        //     'name'     => _l('quotations'),
+        //     'icon'     => 'fa fa-file-powerpoint-o',
+        //     'href'     => admin_url('purchase/quotations'),
+        //     'position' => 5,
+        // ]);
 
-        $CI->app_menu->add_sidebar_children_item('purchase', [
-            'slug'     => 'purchase-order',
-            'name'     => _l('purchase_order'),
-            'icon'     => 'fa fa-cart-plus',
-            'href'     => admin_url('purchase/purchase_order'),
-            'position' => 6,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('purchase', [
+        //     'slug'     => 'purchase-order',
+        //     'name'     => _l('purchase_order'),
+        //     'icon'     => 'fa fa-cart-plus',
+        //     'href'     => admin_url('purchase/purchase_order'),
+        //     'position' => 6,
+        // ]);
 
-        $CI->app_menu->add_sidebar_children_item('purchase', [
-            'slug'     => 'purchase-contract',
-            'name'     => _l('contracts'),
-            'icon'     => 'fa fa-file-text-o',
-            'href'     => admin_url('purchase/contracts'),
-            'position' => 7,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('purchase', [
+        //     'slug'     => 'purchase-contract',
+        //     'name'     => _l('contracts'),
+        //     'icon'     => 'fa fa-file-text-o',
+        //     'href'     => admin_url('purchase/contracts'),
+        //     'position' => 7,
+        // ]);
 
         $CI->app_menu->add_sidebar_children_item('purchase', [
             'slug'     => 'purchase-invoices',
-            'name'     => _l('invoices'),
+            'name'     => _l('purchase_invoices'),
             'icon'     => 'fa fa-clipboard',
             'href'     => admin_url('purchase/invoices'),
             'position' => 8,
+        ]);
+        $CI->app_menu->add_sidebar_children_item('purchase', [
+            'slug'     => 'wa_manage_goods_receipt',
+            'name'     => _l('stock_import'),
+            'icon'     => 'fa fa-object-group',
+            'href'     => admin_url('warehouse/manage_purchase'),
+            'position' => 9,
         ]);
 
         $CI->app_menu->add_sidebar_children_item('purchase', [

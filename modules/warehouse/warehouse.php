@@ -197,29 +197,29 @@ function warehouse_module_init_menu_items()
             'position' => 1,
         ]);
 
-        $CI->app_menu->add_sidebar_children_item('warehouse', [
-            'slug'     => 'wa_manage_goods_receipt',
-            'name'     => _l('stock_import'),
-            'icon'     => 'fa fa-object-group',
-            'href'     => admin_url('warehouse/manage_purchase'),
-            'position' => 2,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('warehouse', [
+        //     'slug'     => 'wa_manage_goods_receipt',
+        //     'name'     => _l('stock_import'),
+        //     'icon'     => 'fa fa-object-group',
+        //     'href'     => admin_url('warehouse/manage_purchase'),
+        //     'position' => 2,
+        // ]);
         
-        $CI->app_menu->add_sidebar_children_item('warehouse', [
-            'slug'     => 'wa_manage_goods_delivery',
-            'name'     => _l('stock_export'),
-            'icon'     => 'fa fa-object-ungroup',
-            'href'     => admin_url('warehouse/manage_delivery'),
-            'position' => 3,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('warehouse', [
+        //     'slug'     => 'wa_manage_goods_delivery',
+        //     'name'     => _l('stock_export'),
+        //     'icon'     => 'fa fa-object-ungroup',
+        //     'href'     => admin_url('warehouse/manage_delivery'),
+        //     'position' => 3,
+        // ]);
 
-        $CI->app_menu->add_sidebar_children_item('warehouse', [
-            'slug'     => 'wa_manage_packing_list',
-            'name'     => _l('wh_packing_lists'),
-            'icon'     => 'fa fa-inbox',
-            'href'     => admin_url('warehouse/manage_packing_list'),
-            'position' => 4,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('warehouse', [
+        //     'slug'     => 'wa_manage_packing_list',
+        //     'name'     => _l('wh_packing_lists'),
+        //     'icon'     => 'fa fa-inbox',
+        //     'href'     => admin_url('warehouse/manage_packing_list'),
+        //     'position' => 4,
+        // ]);
 
         $CI->app_menu->add_sidebar_children_item('warehouse', [
             'slug'     => 'wa_manage_internal_delivery',
