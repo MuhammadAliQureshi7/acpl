@@ -4699,6 +4699,16 @@ class purchase extends AdminController
     /**
      * Get available serials for a given item_code (tblitems.id)
      */
+    /**
+     * Get vendor for a purchase invoice
+     */
+    public function get_pur_invoice_vendor($pi_id) {
+        $invoice = $this->purchase_model->get_pur_invoice($pi_id);
+        $vendor_id = $invoice ? $invoice->vendor : '';
+        echo json_encode(['userid' => $vendor_id]);
+        die;
+    }
+
     public function get_available_serials($item_code){
         $serials = $this->purchase_model->get_available_serials($item_code);
         echo json_encode(['serials' => $serials]);

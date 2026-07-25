@@ -11,10 +11,6 @@
 		appValidateForm($('#add_goods_receipt'), {
 			date_c: 'required',
 			date_add: 'required',
-			<?php if($pr_orders_status == true && get_warehouse_option('goods_receipt_required_po') == 1 ){ ?>
-				pr_order_id: 'required',
-
-			<?php } ?>
 
 		}); 
 
@@ -56,13 +52,7 @@ function numberWithCommas(x) {
 (function($) {
 	"use strict";
 
-// Add item to preview from the dropdown for invoices estimates
-$("body").on('change', 'select[name="item_select"]', function () {
-	var itemid = $(this).selectpicker('val');
-	if (itemid != '') {
-		wh_add_item_to_preview(itemid);
-	}
-});
+// Items auto-load from purchase invoice selection
 
 // Recaulciate total on these changes
 $("body").on('change', 'select.taxes', function () {
@@ -78,57 +68,40 @@ $('.add_goods_receipt_send').on('click', function() {
 });
 
 
-$('select[name="pr_order_id"]').on('change', function() {
+$('select[name="pur_invoice_id"]').on('change', function() {
 	"use strict";  
 
-	var pr_order_id = $('select[name="pr_order_id"]').val();
-	$.get(admin_url+'warehouse/coppy_pur_request/'+pr_order_id).done(function(response){
-		response = JSON.parse(response);
+	var pi_id = $('select[name="pur_invoice_id"]').val();
+	if(pi_id != ''){
+		$.get(admin_url+'warehouse/get_pur_invoice_items/'+pi_id).done(function(response){
+			response = JSON.parse(response);
 
-		if(response){
-			$('.invoice-item table.invoice-items-table.items tbody').html('');
-			$('.invoice-item table.invoice-items-table.items tbody').append(response.list_item);
+			if(response){
+				$('.invoice-item table.invoice-items-table.items tbody').html('');
+				$('.invoice-item table.invoice-items-table.items tbody').append(response.list_item);
 
-			setTimeout(function () {
-				wh_calculate_total();
-			}, 15);
+				setTimeout(function () {
+					wh_calculate_total();
+				}, 15);
 
-			init_selectpicker();
-			init_datepicker();
-			wh_reorder_items('.invoice-item');
-			wh_clear_item_preview_values('.invoice-item');
-			$('body').find('#items-warning').remove();
-			$("body").find('.dt-loader').remove();
-			$('#item_select').selectpicker('val', '');
-
+				init_selectpicker();
+				wh_reorder_items('.invoice-item');
+				wh_clear_item_preview_values('.invoice-item');
+				$('body').find('#items-warning').remove();
+				$("body").find('.dt-loader').remove();
 			}
 
 		}).fail(function(error) {
 
 		});
 
-		if(pr_order_id != ''){
-
-			$.post(admin_url + 'warehouse/copy_pur_vender/'+pr_order_id).done(function(response){
-				var response_vendor = JSON.parse(response);
+		$.post(admin_url + 'purchase/get_pur_invoice_vendor/'+pi_id).done(function(response){
+			var response_vendor = JSON.parse(response);
 
 				$('select[name="supplier_code"]').val(response_vendor.userid).change();
-				$('select[name="buyer_id"]').val(response_vendor.buyer).change();
-
-				$('select[name="project"]').val(response_vendor.project).change();
-				$('select[name="type"]').val(response_vendor.type).change();
-				$('select[name="department"]').val(response_vendor.department).change();
-				$('select[name="requester"]').val(response_vendor.requester).change();
-
 			});
 		}else{
 			$('select[name="supplier_code"]').val('').change();
-			$('select[name="buyer_id"]').val('').change();
-
-			$('select[name="project"]').val('').change();
-			$('select[name="type"]').val('').change();
-			$('select[name="department"]').val('').change();
-			$('select[name="requester"]').val('').change();
 		}
 
 	});
@@ -216,10 +189,9 @@ function wh_add_item_to_table(data, itemid) {
 		init_selectpicker();
 		init_datepicker();
 		wh_reorder_items('.invoice-item');
-		wh_clear_item_preview_values('.invoice-item');
-		$('body').find('#items-warning').remove();
-		$("body").find('.dt-loader').remove();
-        $('#item_select').selectpicker('val', '');
+			wh_clear_item_preview_values('.invoice-item');
+			$('body').find('#items-warning').remove();
+			$("body").find('.dt-loader').remove();
 
 		return true;
 	});

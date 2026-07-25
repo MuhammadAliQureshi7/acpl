@@ -82,12 +82,12 @@
 
 													<?php 
 													if (get_status_modules_wh('purchase')) {
-														if( ($goods_receipt->pr_order_id != '') && ($goods_receipt->pr_order_id != 0) ){ ?>
+														if( ($goods_receipt->pur_invoice_id != '') && ($goods_receipt->pur_invoice_id != 0) ){ ?>
 
 															<tr class="project-overview">
-																<td class="bold"><?php echo _l('reference_purchase_order'); ?></td>
+																<td class="bold"><?php echo _l('pur_invoice'); ?></td>
 																<td>
-																	<a href="<?php echo admin_url('purchase/purchase_order/'.$goods_receipt->pr_order_id) ?>" ><?php echo get_pur_order_name($goods_receipt->pr_order_id) ?></a>
+																	<a href="<?php echo admin_url('purchase/purchase_invoice/'.$goods_receipt->pur_invoice_id) ?>" ><?php echo get_pur_invoice_number($goods_receipt->pur_invoice_id) ?></a>
 
 																</td>
 															</tr>

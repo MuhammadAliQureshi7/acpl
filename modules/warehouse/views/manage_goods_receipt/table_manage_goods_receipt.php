@@ -7,7 +7,7 @@ $aColumns = [
     'goods_receipt_code',
     'supplier_name',
     'buyer_id',
-    'pr_order_id',
+    'pur_invoice_id',
     'date_add',
     'total_tax_money', 
     'total_goods_money',
@@ -104,15 +104,15 @@ foreach ($rResult as $aRow) {
         }elseif($aRow['approval'] == -1){
             $_data = '<span class="label label-tag tag-id-1 label-tab3"><span class="tag">'._l('reject').'</span><span class="hide">, </span></span>&nbsp';
         }
-    }elseif($aColumns[$i] == 'pr_order_id'){
-        $get_pur_order_name ='';
+    }elseif($aColumns[$i] == 'pur_invoice_id'){
+        $get_pur_invoice_name ='';
         if (get_status_modules_wh('purchase')) {
-            if( ($aRow['pr_order_id'] != '') && ($aRow['pr_order_id'] != 0) ){
-                $get_pur_order_name .='<a href="'. admin_url('purchase/purchase_order/'.$aRow['pr_order_id']) .'" >'. get_pur_order_name($aRow['pr_order_id']) .'</a>';
+            if( ($aRow['pur_invoice_id'] != '') && ($aRow['pur_invoice_id'] != 0) ){
+                $get_pur_invoice_name .='<a href="'. admin_url('purchase/purchase_invoice/'.$aRow['pur_invoice_id']) .'" >'. get_pur_invoice_number($aRow['pur_invoice_id']) .'</a>';
             }
         }
 
-        $_data = $get_pur_order_name;
+        $_data = $get_pur_invoice_name;
 
     }
     

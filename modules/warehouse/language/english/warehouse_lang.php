@@ -1,5 +1,5 @@
 <?php
-$lang['commodity_type']  = 'Items';
+$lang['commodity_type']  = 'Item Type';
 $lang['commodity_group']  = 'Principal';
 $lang['commodity_list']  = 'Item List';
 $lang['bodys']  = 'Bodies';

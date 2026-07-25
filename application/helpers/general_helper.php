@@ -992,4 +992,44 @@ if (!function_exists('collect')) {
     {
         return new Illuminate\Support\Collection($items);
     }
+    
 }
+function dd($data){
+        $i = 0;
+        $args = func_get_args();
+        foreach ($args as $arg) {
+            print("<pre>
+    " . ++$i . "-->" . print_r($arg, true) . "</pre>");
+            echo '<br>';
+    //        echo "<strong>var_dump : ";
+    //        var_dump($arg);
+            echo "</b>";
+            echo '<br>';
+            echo '------------------------------';
+            echo "<br>";
+            echo '------------------------------';
+            echo "<br>";
+
+        }
+        echo debug_backtrace()[0]['file'] . ' ' . debug_backtrace()[0]['line'];
+        $stackTrace = debug_backtrace();
+        echo "<br>";
+
+    // Print each line of the stack trace
+        foreach ($stackTrace as $index => $call) {
+            echo "Line $index: ";
+            if (isset($call['file'])) {
+                echo $call['file'];
+                if (isset($call['line'])) {
+                    echo ":" . $call['line'];
+                }
+            }
+            echo "<br>";
+        }
+        die();
+        //    $die = end($args);
+        //
+        //    if ($die) {
+        //        die();
+        //    }
+    }

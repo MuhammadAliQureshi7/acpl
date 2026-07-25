@@ -1154,6 +1154,10 @@ class Warehouse_model extends App_Model {
 		unset($data['tax_name']);
 		unset($data['tax_money']);
 		unset($data['goods_money']);
+		
+		if(isset($data['items'])){			
+			unset($data['items']);
+		}
 
 		if(isset($data['warehouse_id_m'])){
 			$data['warehouse_id'] = $data['warehouse_id_m'];
@@ -1236,6 +1240,14 @@ class Warehouse_model extends App_Model {
 		if ($insert_id) {
 			foreach ($inventory_receipts as $inventory_receipt) {
 				$inventory_receipt['goods_receipt_id'] = $insert_id;
+				// Use receipt-level warehouse if item warehouse is empty
+				if((!isset($inventory_receipt['warehouse_id']) || $inventory_receipt['warehouse_id'] == '') && isset($data['warehouse_id'])){
+					$inventory_receipt['warehouse_id'] = $data['warehouse_id'];
+				}
+				// Set defaults for removed fields
+				if(!isset($inventory_receipt['date_manufacture'])) $inventory_receipt['date_manufacture'] = '';
+				if(!isset($inventory_receipt['expiry_date'])) $inventory_receipt['expiry_date'] = '';
+				if(!isset($inventory_receipt['lot_number'])) $inventory_receipt['lot_number'] = '';
 				if($inventory_receipt['date_manufacture'] != ''){
 					$inventory_receipt['date_manufacture'] = to_sql_date($inventory_receipt['date_manufacture']);
 				}else{
@@ -1281,6 +1293,7 @@ class Warehouse_model extends App_Model {
 				unset($inventory_receipt['order']);
 				unset($inventory_receipt['id']);
 				unset($inventory_receipt['tax_select']);
+				unset($inventory_receipt['unit_name']);
 
 				$this->db->insert(db_prefix() . 'goods_receipt_detail', $inventory_receipt);
 				if($this->db->insert_id()){
@@ -1517,7 +1530,7 @@ class Warehouse_model extends App_Model {
 			$data_insert['lot_number'] = $data['lot_number'];
 
 		}
-
+		// dd($data);
 		/*get old quantity by item, warehouse*/
 		$inventory_value = $this->get_quantity_inventory($data['warehouse_id'], $data['commodity_code']);
 		$old_quantity =  null;
@@ -2380,6 +2393,9 @@ class Warehouse_model extends App_Model {
 				if(isset($goods_receipt->pr_order_id) && ($goods_receipt->pr_order_id != 0) ){
 					$from_po = true;
 				}
+				if(isset($goods_receipt->pur_invoice_id) && ($goods_receipt->pur_invoice_id != 0) ){
+					$from_po = false;
+				}
 			}
 
 			foreach ($goods_receipt_detail as $goods_receipt_detail_value) {
@@ -2387,7 +2403,7 @@ class Warehouse_model extends App_Model {
 				/*update Without checking warehouse*/		
 
 				if($this->check_item_without_checking_warehouse($goods_receipt_detail_value['commodity_code']) == true){
-
+					// dd($goods_receipt_detail_value);
 					$this->add_goods_transaction_detail($goods_receipt_detail_value, 1);
 					$this->add_inventory_manage($goods_receipt_detail_value, 1);
 
@@ -4980,7 +4996,6 @@ class Warehouse_model extends App_Model {
 	 * @return object
 	 */
 	public function get_quantity_inventory($warehouse_id, $commodity_id) {
-
 		$sql = 'SELECT warehouse_id, commodity_id, sum(inventory_number) as inventory_number from ' . db_prefix() . 'inventory_manage where warehouse_id = ' . $warehouse_id . ' AND commodity_id = ' . $commodity_id .' group by warehouse_id, commodity_id';
 		$result = $this->db->query($sql)->row();
 		//if > 0 update, else insert
@@ -16296,6 +16311,27 @@ class Warehouse_model extends App_Model {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Generate goods receipt row from purchase invoice (no lot/date_manufacture/expiry_date)
+	 */
+	public function create_goods_receipt_invoice_row($warehouse_data, $name, $commodity_name, $warehouse_id, $quantities, $unit_name, $unit_price, $tax_id, $tax_rate, $tax_money, $goods_money, $commodity_code, $item_key = '', $is_edit = false) {
+		$new_name = str_replace('items[', 'newitems[', $name);
+		$row = '<tr class="sortable item">';
+		$row .= '<td class="dragger"><input type="hidden" class="order" name="' . $new_name . '[order]"><input type="hidden" class="ids" name="' . $new_name . '[id]" value="' . $item_key . '"><input type="hidden" name="' . $new_name . '[commodity_code]" value="' . $commodity_code . '"></td>';
+		$row .= '<td class="">' . render_textarea($new_name . '[commodity_name]', '', $commodity_name, ['rows' => 2, 'placeholder' => _l('item_description_placeholder'), 'readonly' => true]) . '</td>';
+		$row .= '<td class="warehouse_select">' . render_select($new_name . '[warehouse_id]', $warehouse_data, ['warehouse_id', 'warehouse_name'], '', $warehouse_id, [], ["data-none-selected-text" => _l('warehouse_name')], 'no-margin') . '</td>';
+		$row .= '<td class="quantities">' . render_input($new_name . '[quantities]', '', $quantities, 'number', ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0', 'step' => 'any', 'data-quantity' => (float)$quantities], [], 'no-margin') . render_input($new_name . '[unit_name]', '', $unit_name, 'text', ['readonly' => true], [], 'no-margin', 'input-transparent text-right wh_input_none') . '</td>';
+		$row .= '<td class="rate">' . render_input($new_name . '[unit_price]', '', $unit_price, 'number', ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0', 'step' => 'any', 'placeholder' => _l('unit_price')]) . '</td>';
+		$tax_dropdown = $this->get_taxes_dropdown_template($new_name . '[tax_select][]', $tax_id, 'invoice', $item_key, true, false);
+		$tax_dropdown = str_replace('class="selectpicker', 'class="selectpicker taxes', $tax_dropdown);
+		$row .= '<td class="taxrate">' . $tax_dropdown . '</td>';
+		$row .= '<td class="amount_after_tax" align="right">' . app_format_number($goods_money) . '</td>';
+		$row .= '<td class="amount" align="right">' . app_format_number($goods_money) . '</td>';
+		$row .= '<td><a href="#" class="btn btn-danger pull-left" onclick="wh_delete_item(this,' . $item_key . '); return false;"><i class="fa fa-trash"></i></a></td>';
+		$row .= '</tr>';
+		return $row;
 	}
 
 }

@@ -757,6 +757,8 @@ class warehouse extends AdminController {
 
 			$data['vendors'] = $this->purchase_model->get_vendor();
 
+			$data['pur_invoices'] = $this->purchase_model->get_pur_invoice();
+
 			$data['projects'] = $this->projects_model->get();
 			$data['staffs'] = $this->staff_model->get();
 			$data['departments'] = $this->departments_model->get();
@@ -765,6 +767,7 @@ class warehouse extends AdminController {
 		} else {
 			$data['pr_orders'] = [];
 			$data['pr_orders_status'] = false;
+			$data['pur_invoices'] = [];
 		}
 
 
@@ -783,9 +786,9 @@ class warehouse extends AdminController {
 			$data['ajaxItems'] = true;
 		}
 
-		$warehouse_data = $this->warehouse_model->get_warehouse();
+        $warehouse_data = $this->warehouse_model->get_warehouse();
         //sample
-		$goods_receipt_row_template = $this->warehouse_model->create_goods_receipt_row_template();
+		$goods_receipt_row_template = '<tr class="main" style="display:none;"><td></td></tr>';
 
 		//check status module purchase
 		if($id != ''){
@@ -803,22 +806,11 @@ class warehouse extends AdminController {
 				foreach ($data['goods_receipt_detail'] as $receipt_detail) {
 					$index_receipt++;
 					$unit_name = wh_get_unit_name($receipt_detail['unit_id']);
-					$taxname = '';
-					$date_manufacture = null;
-					$expiry_date = null;
 					$commodity_name = $receipt_detail['commodity_name'];
-					if($receipt_detail['date_manufacture'] != null && $receipt_detail['date_manufacture'] != ''){
-						$date_manufacture = _d($receipt_detail['date_manufacture']);
-					}
-					if($receipt_detail['expiry_date'] != null && $receipt_detail['expiry_date'] != ''){
-						$expiry_date = _d($receipt_detail['expiry_date']);
-					}
 					if(strlen($commodity_name) == 0){
 						$commodity_name = wh_get_item_variatiom($receipt_detail['commodity_code']);
 					}
-
-					$goods_receipt_row_template .= $this->warehouse_model->create_goods_receipt_row_template($warehouse_data, 'items[' . $index_receipt . ']', $commodity_name, $receipt_detail['warehouse_id'], $receipt_detail['quantities'], $unit_name, $receipt_detail['unit_price'], $taxname, $receipt_detail['lot_number'], $date_manufacture, $expiry_date, $receipt_detail['commodity_code'], $receipt_detail['unit_id'] , $receipt_detail['tax_rate'], $receipt_detail['tax_money'], $receipt_detail['goods_money'], $receipt_detail['note'], $receipt_detail['id'], $receipt_detail['sub_total'], $receipt_detail['tax_name'], $receipt_detail['tax'], true);
-					
+					$goods_receipt_row_template .= $this->warehouse_model->create_goods_receipt_invoice_row($warehouse_data, 'items[' . $index_receipt . ']', $commodity_name, $receipt_detail['warehouse_id'], $receipt_detail['quantities'], $unit_name, $receipt_detail['unit_price'], $receipt_detail['tax'], $receipt_detail['tax_rate'], $receipt_detail['tax_money'], $receipt_detail['goods_money'], $receipt_detail['commodity_code'], $receipt_detail['id'], true);
 				}
 			}
 
@@ -878,6 +870,49 @@ class warehouse extends AdminController {
 			'requester' => $pur_vendor['requester'] ? $pur_vendor['requester'] : '',
 
 		]);
+	}
+
+	/**
+	 * Get purchase invoice items for goods receipt
+	 */
+	public function get_pur_invoice_items($pi_id) {
+		$this->load->model('purchase/purchase_model');
+		$warehouse_data = $this->warehouse_model->get_warehouse();
+		$list_item = '';
+		$index = 0;
+
+		if(is_numeric($pi_id)){
+			$items = $this->purchase_model->get_pur_invoice_detail($pi_id);
+			foreach($items as $item) {
+				$index++;
+				$commodity_name = $item['description'];
+				$qty = $item['qty'];
+				$rate = $item['rate'];
+				$tax_id = $item['tax_id'];
+				$subtotal = $qty * $rate;
+				$tax_rate = 0;
+				if($tax_id) {
+					$tax = $this->purchase_model->get_tax_by_id($tax_id);
+					if($tax) $tax_rate = $tax->taxrate;
+				}
+				$tax_money = $subtotal * $tax_rate / 100;
+				$goods_money = $subtotal + $tax_money;
+				$unit_name = '';
+				$item_info = $this->purchase_model->get_items_by_id($item['item_code']);
+				if($item_info && isset($item_info->unit_id)) {
+					$unit = $this->purchase_model->get_units_by_id($item_info->unit_id);
+					if($unit) $unit_name = $unit->unit_name;
+				}
+				$list_item .= $this->warehouse_model->create_goods_receipt_invoice_row($warehouse_data, 'items['.$index.']', $commodity_name, '', $qty, $unit_name, $rate, $tax_id, $tax_rate, $tax_money, $goods_money, $item['item_code'], $index, true);
+			}
+		}
+
+		if($list_item == '') {
+			$list_item = '<tr class="main" style="display:none;"><td></td></tr>';
+		}
+
+		echo json_encode(['list_item' => $list_item]);
+		die;
 	}
 
 	/**
