@@ -324,7 +324,7 @@ function purchase_add_footer_components() {
     }
 
     if(!(strpos($viewuri, '/admin/purchase/pur_invoice') === false)){
-        echo '<script src="' . module_dir_url(PURCHASE_MODULE_NAME, 'assets/js/pur_invoice.js') .'?v=' . PURCHASE_REVISION.'"></script>';
+        // JS is loaded via pur_invoice_js.php require in view
     }
 
     if(!(strpos($viewuri, '/admin/purchase/purchase_invoice') === false)){
@@ -437,6 +437,7 @@ function purchase_head_components() {
 
     if(!(strpos($viewuri, '/admin/purchase/pur_invoice') === false)){
         echo '<link href="' . module_dir_url(PURCHASE_MODULE_NAME, 'assets/css/pur_invoice.css') .'?v=' . PURCHASE_REVISION.'"  rel="stylesheet" type="text/css" />';
+        echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>';
     }
 
     if(!(strpos($viewuri, '/admin/purchase/purchase_invoice') === false)){

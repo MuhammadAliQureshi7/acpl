@@ -3674,7 +3674,7 @@ class purchase extends AdminController
      * @return view
      */
     public function invoices(){
-        $data['title'] = _l('invoices');
+        $data['title'] = _l('purchase_invoices');
         $data['contracts'] = $this->purchase_model->get_contract();
         $this->load->view('invoices/manage',$data);
     }
@@ -3693,15 +3693,19 @@ class purchase extends AdminController
      */
     public function pur_invoice($id = ''){
         if($id == ''){
-            $data['title'] = _l('add_invoice');
+            $data['title'] = _l('add_purchase_invoice');
 
         }else{
-            $data['title'] = _l('edit_invoice');
+            $data['title'] = _l('edit_purchase_invoice');
             $data['pur_invoice'] = $this->purchase_model->get_pur_invoice($id);
+            $data['pur_invoice_items'] = $this->purchase_model->get_pur_invoice_detail($id);
+            $data['pur_invoice_detail'] = json_encode($data['pur_invoice_items']);
         }
         $data['contracts'] = $this->purchase_model->get_contract();
         $data['taxes'] = $this->purchase_model->get_taxes();
         $data['pur_orders'] = $this->purchase_model->get_pur_order_approved();
+        $data['items'] = $this->purchase_model->get_items();
+        $data['vendors'] = $this->purchase_model->get_vendor();
         $this->load->view('invoices/pur_invoice',$data);
     }
 
@@ -3826,6 +3830,7 @@ class purchase extends AdminController
         $data['members']           = $this->staff_model->get('', ['active' => 1]);
         $data['payment'] = $this->purchase_model->get_payment_invoice($id);
         $data['pur_invoice_attachments'] = $this->purchase_model->get_purchase_invoice_attachments($id);
+        $data['pur_invoice_items'] = $this->purchase_model->get_pur_invoice_detail($id);
         $this->load->view('invoices/pur_invoice_preview',$data);
     }
 
@@ -4660,5 +4665,43 @@ class purchase extends AdminController
             set_alert('success', _l('deleted', _l('po_logo')));
         }
         redirect(admin_url('purchase/setting'));
+    }
+
+    /**
+     * Upload serials Excel for purchase invoice
+     */
+    public function upload_pi_serials(){
+        if(!$this->input->post()){
+            echo json_encode(['success' => false, 'message' => 'No data']);
+            die;
+        }
+        $pi_id = $this->input->post('pi_id');
+        $serials_json = $this->input->post('serials');
+        echo '<pre>';
+        print_r($serials_json);
+        exit;
+        if(!$pi_id || !$serials_json) {
+            echo json_encode(['success' => false, 'message' => 'Missing parameters']);
+            die;
+        }
+
+        $serials = json_decode($serials_json, true);
+        if(!is_array($serials)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+            die;
+        }
+
+        $count = $this->purchase_model->save_pi_serials($pi_id, $serials);
+        echo json_encode(['success' => true, 'count' => $count]);
+        die;
+    }
+
+    /**
+     * Get available serials for a given item_code (tblitems.id)
+     */
+    public function get_available_serials($item_code){
+        $serials = $this->purchase_model->get_available_serials($item_code);
+        echo json_encode(['serials' => $serials]);
+        die;
     }
 }

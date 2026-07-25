@@ -73,14 +73,14 @@
                     </div>
                 </div>
                 <?php } ?>
-                <div class="row">
+                <!--<div class="row">
                     <div class="col-md-12">
                         <hr class="hr-10" />
                         <a href="#" class="edit_shipping_billing_info" data-toggle="modal"
                             data-target="#billing_and_shipping_details"><i class="fa-regular fa-pen-to-square"></i></a>
                         <?php include_once(APPPATH . 'views/admin/invoices/billing_and_shipping_template.php'); ?>
                     </div>
-                    <div class="col-md-6">
+                     <div class="col-md-6">
                         <p class="bold"><?php echo _l('invoice_bill_to'); ?></p>
                         <address>
                             <span class="billing_street">
@@ -105,7 +105,7 @@
                                 <?php $billing_zip = ($billing_zip == '' ? '--' :$billing_zip); ?>
                                 <?php echo $billing_zip; ?></span>
                         </address>
-                    </div>
+                    </div> 
                     <div class="col-md-6">
                         <p class="bold"><?php echo _l('ship_to'); ?></p>
                         <address>
@@ -132,7 +132,7 @@
                                 <?php echo $shipping_zip; ?></span>
                         </address>
                     </div>
-                </div>
+                </div>-->
                 <?php
                $next_invoice_number = get_option('next_invoice_number');
                $format              = get_option('invoice_number_format');
@@ -269,14 +269,14 @@
             </div>
             <div class="col-md-6">
                 <div class="tw-ml-3">
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="tags" class="control-label"><i class="fa fa-tag" aria-hidden="true"></i>
                             <?php echo _l('tags'); ?></label>
                         <input type="text" class="tagsinput" id="tags" name="tags"
                             value="<?php echo(isset($invoice) ? prep_tags_input(get_tags_in($invoice->id, 'invoice')) : ''); ?>"
                             data-role="tagsinput">
-                    </div>
-                    <div class="form-group mbot15<?= count($payment_modes) > 0 ? ' select-placeholder' : ''; ?>">
+                    </div> -->
+                    <!-- <div class="form-group mbot15<?= count($payment_modes) > 0 ? ' select-placeholder' : ''; ?>">
                         <label for="allowed_payment_modes"
                             class="control-label"><?php echo _l('invoice_add_edit_allowed_payment_modes'); ?></label>
                         <br />
@@ -316,7 +316,7 @@
                             <?php echo _l('new_payment_mode'); ?>
                         </a>
                         <?php } ?>
-                    </div>
+                    </div> -->
 
                     <div class="row">
                         <div class="col-md-6">
@@ -355,7 +355,7 @@
                                 echo render_select('sale_agent', $staff, ['staffid', ['firstname', 'lastname']], 'sale_agent_string', $selected);
                             ?>
                         </div>
-                        <div class="col-md-6">
+                        <!-- <div class="col-md-6">
                             <div class="form-group select-placeholder"
                                 <?php if (isset($invoice) && !empty($invoice->is_recurring_from)) { ?>
                                 data-toggle="tooltip"
@@ -397,8 +397,8 @@
                               } ?>><?php echo _l('recurring_custom'); ?></option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="col-md-6">
+                        </div> -->
+                        <!-- <div class="col-md-6">
                             <div class="form-group select-placeholder">
                                 <label for="discount_type"
                                     class="control-label"><?php echo _l('discount_type'); ?></label>
@@ -418,8 +418,8 @@
                               } ?>><?php echo _l('discount_type_after_tax'); ?></option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="recurring_custom <?php if ((isset($invoice) && $invoice->custom_recurring != 1) || (!isset($invoice))) {
+                        </div> -->
+                        <!-- <div class="recurring_custom <?php if ((isset($invoice) && $invoice->custom_recurring != 1) || (!isset($invoice))) {
                                   echo 'hide';
                               } ?>">
                             <div class="col-md-6">
@@ -476,7 +476,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <?php $value = (isset($invoice) ? $invoice->adminnote : ''); ?>
                     <?php echo render_textarea('adminnote', 'invoice_add_edit_admin_note', $value); ?>
 
@@ -492,8 +492,8 @@
             <div class="col-md-4">
                 <?php $this->load->view('admin/invoice_items/item_select'); ?>
             </div>
-            <?php if (!isset($invoice_from_project) && isset($billable_tasks)) { ?>
-            <div class="col-md-3">
+            <?php // if (!isset($invoice_from_project) && isset($billable_tasks)) { ?>
+            <!-- <div class="col-md-3">
                 <div class="form-group select-placeholder input-group-select form-group-select-task_select popover-250">
                     <div class="input-group input-group-select">
                         <select name="task_select" data-live-search="true" id="task_select"
@@ -523,10 +523,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <?php
-                            } ?>
-            <div class="col-md-<?php if (!isset($invoice_from_project)) {
+                           // } ?>
+            <!-- <div class="col-md-<?php if (!isset($invoice_from_project)) {
                                 echo 5;
                             } else {
                                 echo 8;
@@ -558,8 +558,8 @@
                             for="sq_3"><?php echo _l('invoice_table_quantity_heading'); ?>/<?php echo _l('invoice_table_hours_heading'); ?></label>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div>-->
+        </div> 
         <?php if (isset($invoice_from_project)) {
                                 echo '<hr class="no-mtop" />';
                             } ?>
@@ -568,6 +568,7 @@
                 <thead>
                     <tr>
                         <th></th>
+                        <th width="10%" align="left"><?php echo _l('commodity_code'); ?></th>
                         <th width="20%" align="left"><i class="fa-solid fa-circle-exclamation tw-mr-1"
                                 aria-hidden="true" data-toggle="tooltip"
                                 data-title="<?php echo _l('item_description_new_lines_notice'); ?>"></i>
@@ -589,12 +590,14 @@
                         <th width="15%" align="right"><?php echo _l('invoice_table_rate_heading'); ?></th>
                         <th width="20%" align="right"><?php echo _l('invoice_table_tax_heading'); ?></th>
                         <th width="10%" align="right"><?php echo _l('invoice_table_amount_heading'); ?></th>
+                        <th width="12%" align="center"><?php echo _l('serials'); ?></th>
                         <th align="center"><i class="fa fa-cog"></i></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="main">
+                    <tr class="main" style="display:none;">
                         <td></td>
+                        <td><input type="text" name="item_code_display" class="form-control" disabled></td>
                         <td>
                             <textarea name="description" class="form-control" rows="4"
                                 placeholder="<?php echo _l('item_description_placeholder'); ?>"></textarea>
@@ -633,7 +636,7 @@
                         echo $select;
                         ?>
                         </td>
-                        <td></td>
+                        <td align="center">-</td>
                         <td>
                             <?php
                         $new_item = 'undefined';
@@ -671,9 +674,11 @@
                                 $amount = app_format_number($amount);
                                 // order input
                                 $table_row .= '<input type="hidden" class="order" name="' . $items_indicator . '[' . $i . '][order]">';
+                                $table_row .= '<input type="hidden" name="' . $items_indicator . '[' . $i . '][item_code]" value="' . $item['id'] . '">';
                                 $table_row .= '</td>';
-                                $table_row .= '<td class="bold description"><textarea name="' . $items_indicator . '[' . $i . '][description]" class="form-control" rows="5">' . clear_textarea_breaks($item['description']) . '</textarea></td>';
-                                $table_row .= '<td><textarea name="' . $items_indicator . '[' . $i . '][long_description]" class="form-control" rows="5">' . clear_textarea_breaks($item['long_description']) . '</textarea></td>';
+                                $table_row .= '<td><input type="text" class="form-control" value="' . $item['id'] . '" disabled></td>';
+                                $table_row .= '<td class="bold description"><textarea name="' . $items_indicator . '[' . $i . '][description]" class="form-control" rows="5" readonly>' . clear_textarea_breaks($item['description']) . '</textarea></td>';
+                                $table_row .= '<td><textarea name="' . $items_indicator . '[' . $i . '][long_description]" class="form-control" rows="5" readonly>' . clear_textarea_breaks($item['long_description']) . '</textarea></td>';
 
                                 $table_row .= render_custom_fields_items_table_in($item, $items_indicator . '[' . $i . ']');
 
@@ -691,6 +696,7 @@
                                 $table_row .= '<td class="rate"><input type="number" data-toggle="tooltip" title="' . _l('numbers_not_formatted_while_editing') . '" onblur="calculate_total();" onchange="calculate_total();" name="' . $items_indicator . '[' . $i . '][rate]" value="' . $item['rate'] . '" class="form-control"></td>';
                                 $table_row .= '<td class="taxrate">' . $this->misc_model->get_taxes_dropdown_template('' . $items_indicator . '[' . $i . '][taxname][]', $invoice_item_taxes, 'invoice', $item['id'], true, $manual) . '</td>';
                                 $table_row .= '<td class="amount" align="right">' . $amount . '</td>';
+                                $table_row .= '<td align="center"><select class="selectpicker serials-select" data-width="100%" multiple data-none-selected-text="' . _l('no_tax') . '" data-item-code="' . $item['id'] . '"></select></td>';
                                 $table_row .= '<td><a href="#" class="btn btn-danger pull-left" onclick="delete_item(this,' . $item['id'] . '); return false;"><i class="fa fa-times"></i></a></td>';
                                 if (isset($item['task_id'])) {
                                     if (!is_array($item['task_id'])) {

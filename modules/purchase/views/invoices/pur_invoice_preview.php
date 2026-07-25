@@ -115,13 +115,8 @@
 
 	         	<div class="tab-content">
 	         		<div role="tabpanel" class="tab-pane ptop10 active" id="tab_pur_invoice">
+	         			<div class="row">
 	         			<div class="col-md-6 pad_left_0">
-	         				<div class="col-md-6 pad_left_0 border-right">
-	         					<p><?php echo _l('invoice_number').':'; ?><span class="pull-right bold"><?php echo html_entity_decode($pur_invoice->invoice_number); ?></span></p>
-	         				</div>
-	         				<div class="col-md-6 pad_right_0">
-	         					<p><?php echo _l('invoice_date').':'; ?><span class="pull-right bold"><?php echo _d($pur_invoice->invoice_date); ?></span></p>
-	         				</div>
 	         				<div class="col-md-12 pad_left_0 pad_right_0">
 	         					<hr class="mtop5 mbot5">
 	         				</div>
@@ -204,6 +199,56 @@
 	         				
 	         			</div>
 	         		</div>
+
+	         		<div class="row">
+	         			<div class="col-md-12">
+	         				<hr />
+	         				<h4 class="bold"><?php echo _l('item_list'); ?></h4>
+	         				<hr />
+	         				<table class="table table-bordered">
+	         					<thead>
+	         						<tr>
+	         							<th><?php echo _l('commodity_code'); ?></th>
+	         							<th><?php echo _l('item_description'); ?></th>
+	         							<th><?php echo _l('purchase_quantity'); ?></th>
+	         							<th><?php echo _l('rate'); ?></th>
+	         							<th><?php echo _l('subtotal'); ?></th>
+	         							<th><?php echo _l('tax'); ?></th>
+	         							<th><?php echo _l('subtotal_after_tax'); ?></th>
+	         						</tr>
+	         					</thead>
+	         					<tbody>
+	         						<?php if(isset($pur_invoice_items) && count($pur_invoice_items) > 0){ ?>
+	         						<?php foreach($pur_invoice_items as $item){ 
+	         							$item_info = $this->purchase_model->get_items_by_id($item['item_code']);
+	         							$tax_name = '';
+	         							if($item['tax_id'] && $item['tax_id'] != ''){
+	         								$tax = $this->purchase_model->get_tax_by_id($item['tax_id']);
+	         								if($tax){
+	         									$tax_name = $tax->label . ' (' . $tax->taxrate . '%)';
+	         								}
+	         							}
+	         						?>
+	         						<tr>
+	         							<td><?php echo html_entity_decode($item_info && isset($item_info->commodity_code) ? $item_info->commodity_code : $item['item_code']); ?></td>
+	         							<td><?php echo html_entity_decode($item['description']); ?></td>
+	         							<td><?php echo html_entity_decode($item['qty']); ?></td>
+	         							<td><?php echo app_format_money($item['rate'],''); ?></td>
+	         							<td><?php echo app_format_money($item['qty'] * $item['rate'],''); ?></td>
+	         							<td><?php echo html_entity_decode($tax_name); ?></td>
+	         							<td><?php echo app_format_money($item['amount_after_tax'],''); ?></td>
+	         						</tr>
+	         						<?php } ?>
+	         						<?php } else { ?>
+	         						<tr>
+	         						<td colspan="7"><?php echo _l('no_items'); ?></td>
+	         						</tr>
+	         						<?php } ?>
+	         					</tbody>
+	         				</table>
+	         			</div>
+	         		</div>
+
 	         		<div role="tabpanel" class="tab-pane" id="tab_reminders">
 		               <a href="#" data-toggle="modal" class="btn btn-info" data-target=".reminder-modal-pur_invoice-<?php echo html_entity_decode($pur_invoice->id); ?>"><i class="fa fa-bell-o"></i> <?php echo _l('estimate_set_reminder_title'); ?></a>
 		               <hr />

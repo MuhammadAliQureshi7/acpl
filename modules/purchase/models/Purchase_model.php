@@ -1589,6 +1589,12 @@ class Purchase_model extends App_Model
      *
      * @return     integer  The total tax.
      */
+    public function get_tax_by_id($id)
+    {
+        $this->db->where('id', $id);
+        return $this->db->get(db_prefix() . 'taxes')->row();
+    }
+
     public function get_total_tax($taxes){
         $rs = 0;
         foreach($taxes as $tax){
@@ -4770,27 +4776,142 @@ class Purchase_model extends App_Model
      *
      * @param        $data   The data
      */
-    public function add_pur_invoice($data){
+    // public function add_pur_invoice($data){
+    //     echo '<pre>';
+    //     print_r($data);
+    //     exit;
+    //     if(isset($data['item_select'])){
+    //         unset($data['item_select']);
+    //     }
+    //     if(isset($data['item_code'])){
+    //         unset($data['item_code']);
+    //     }
+    //     if(isset($data['description'])){
+    //         unset($data['description']);
+    //     }
+    //     if(isset($data['unit'])){
+    //         unset($data['unit']);
+    //     }
+    //     if(isset($data['quantity'])){
+    //         unset($data['quantity']);
+    //     }
+    //     if(isset($data['rate'])){
+    //         unset($data['rate']);
+    //     }
+    //     if(isset($data['taxname'])){
+    //         unset($data['taxname']);
+    //     }
+    //     if(isset($data['items'])){
+    //         unset($data['items']);
+    //     }
+    //     $data['add_from'] = get_staff_user_id();
+    //     $data['date_add'] = date('Y-m-d');
+    //     $data['payment_status'] = 'unpaid';
+    //     $prefix = get_purchase_option('pur_inv_prefix');
+
+    //     $this->db->where('invoice_number',$data['invoice_number']);
+    //     $check_exist_number = $this->db->get(db_prefix().'pur_invoices')->row();
+
+    //     while($check_exist_number) {
+    //       $data['number'] = $data['number'] + 1;
+    //       $data['invoice_number'] =  $prefix.str_pad($data['number'],5,'0',STR_PAD_LEFT);
+    //       $this->db->where('invoice_number',$data['invoice_number']);
+    //       $check_exist_number = $this->db->get(db_prefix().'pur_invoices')->row();
+    //     }
+
+    //     $data['invoice_date'] = to_sql_date($data['invoice_date']);
+    //     $data['transaction_date'] = to_sql_date($data['transaction_date']);
+    //     $data['subtotal'] = reformat_currency_pur($data['subtotal']);
+    //     $data['tax'] = reformat_currency_pur($data['subtotal']);
+    //     $data['total'] = reformat_currency_pur($data['total']);
+
+    //     $tags = '';
+    //     if (isset($data['tags'])) {
+    //         $tags = $data['tags'];
+    //         unset($data['tags']);
+    //     }
+
+    //     $pur_invoice_detail = array();
+    //     if (isset($data['pur_invoice_detail'])) {
+    //         $pur_invoice_detail = json_decode($data['pur_invoice_detail']);
+    //         unset($data['pur_invoice_detail']);
+    //     }
+
+    //     $this->db->insert(db_prefix().'pur_invoices',$data);
+    //     $insert_id = $this->db->insert_id();
+    //     if($insert_id){            
+    //         $next_number = $data['number']+1;
+    //         $this->db->where('option_name', 'next_inv_number');
+    //         $this->db->update(db_prefix() . 'purchase_option',['option_val' =>  $next_number,]);
+
+    //         handle_tags_save($tags, $insert_id, 'pur_invoice');
+
+    //         if (count($pur_invoice_detail) > 0) {
+    //             $this->load->library('PHPExcel');
+
+    //             $itemable_data = [];
+    //             foreach ($pur_invoice_detail as $key => $value) {
+    //                 if (isset($value[1]) && $value[1] != '') {
+    //                     $itemable_data[] = [
+    //                         'item_code' => isset($value[0]) ? $value[0] : '',
+    //                         'description' => isset($value[1]) ? $value[1] : '',
+    //                         'qty' => isset($value[2]) ? $value[2] : 1,
+    //                         'rate' => isset($value[3]) ? $value[3] : 0,
+    //                         'tax_id' => isset($value[4]) ? $value[4] : '',
+    //                         'amount_after_tax' => isset($value[5]) ? $value[5] : 0,
+    //                         'rel_id' => $insert_id,
+    //                         'rel_type' => 'pur_invoice',
+    //                         'item_order' => $key,
+    //                         'long_description' => '',
+    //                     ];
+    //                 }
+    //             }
+    //             if (count($itemable_data) > 0) {
+    //                 $this->db->insert_batch(db_prefix() . 'itemable', $itemable_data);
+    //             }
+    //         }
+
+    //         return $insert_id;
+    //     }
+    //     return false;
+    // }
+    public function add_pur_invoice($data)
+    {
+        if (isset($data['item_select'])) unset($data['item_select']);
+        if (isset($data['item_code'])) unset($data['item_code']);
+        if (isset($data['item_code_display'])) unset($data['item_code_display']);
+        if (isset($data['description'])) unset($data['description']);
+        if (isset($data['unit'])) unset($data['unit']);
+        if (isset($data['quantity'])) unset($data['quantity']);
+        if (isset($data['rate'])) unset($data['rate']);
+        if (isset($data['taxname'])) unset($data['taxname']);
+        if (isset($data['items'])) unset($data['items']);
+
+
+
         $data['add_from'] = get_staff_user_id();
         $data['date_add'] = date('Y-m-d');
         $data['payment_status'] = 'unpaid';
+
         $prefix = get_purchase_option('pur_inv_prefix');
 
-        $this->db->where('invoice_number',$data['invoice_number']);
+        $this->db->where('invoice_number', $data['invoice_number']);
         $check_exist_number = $this->db->get(db_prefix().'pur_invoices')->row();
 
-        while($check_exist_number) {
-          $data['number'] = $data['number'] + 1;
-          $data['invoice_number'] =  $prefix.str_pad($data['number'],5,'0',STR_PAD_LEFT);
-          $this->db->where('invoice_number',$data['invoice_number']);
-          $check_exist_number = $this->db->get(db_prefix().'pur_invoices')->row();
+        while ($check_exist_number) {
+            $data['number'] = $data['number'] + 1;
+            $data['invoice_number'] = $prefix . str_pad($data['number'], 5, '0', STR_PAD_LEFT);
+            $this->db->where('invoice_number', $data['invoice_number']);
+            $check_exist_number = $this->db->get(db_prefix().'pur_invoices')->row();
         }
 
         $data['invoice_date'] = to_sql_date($data['invoice_date']);
-        $data['transaction_date'] = to_sql_date($data['transaction_date']);
-        $data['subtotal'] = reformat_currency_pur($data['subtotal']);
-        $data['tax'] = reformat_currency_pur($data['subtotal']);
-        $data['total'] = reformat_currency_pur($data['total']);
+        if (isset($data['transaction_date']) && $data['transaction_date'] != '') {
+            $data['transaction_date'] = to_sql_date($data['transaction_date']);
+        }
+        $data['subtotal'] = isset($data['subtotal']) ? reformat_currency_pur($data['subtotal']) : 0;
+        $data['tax'] = isset($data['tax']) ? reformat_currency_pur($data['tax']) : 0;
+        $data['total'] = isset($data['total']) ? reformat_currency_pur($data['total']) : 0;
 
         $tags = '';
         if (isset($data['tags'])) {
@@ -4798,18 +4919,91 @@ class Purchase_model extends App_Model
             unset($data['tags']);
         }
 
-        $this->db->insert(db_prefix().'pur_invoices',$data);
-        $insert_id = $this->db->insert_id();
-        if($insert_id){
-            $next_number = $data['number']+1;
-            $this->db->where('option_name', 'next_inv_number');
-            $this->db->update(db_prefix() . 'purchase_option',['option_val' =>  $next_number,]);
-
-            handle_tags_save($tags, $insert_id, 'pur_invoice');
-
-            return $insert_id;
+        $pur_invoice_detail = [];
+        if (isset($data['pur_invoice_detail'])) {
+            $pur_invoice_detail = json_decode($data['pur_invoice_detail'], true);
+            unset($data['pur_invoice_detail']);
         }
-        return false;
+
+        $pi_serial_data = [];
+        if (isset($data['pi_serial_data']) && $data['pi_serial_data'] != '' && $data['pi_serial_data'] != '[]') {
+            $pi_serial_data = json_decode($data['pi_serial_data'], true);
+            if (!is_array($pi_serial_data)) $pi_serial_data = [];
+            unset($data['pi_serial_data']);
+        }
+
+        $this->db->insert(db_prefix().'pur_invoices', $data);
+        $insert_id = $this->db->insert_id();
+
+        if (!$insert_id) {
+            return false;
+        }
+
+        $next_number = $data['number'] + 1;
+        $this->db->where('option_name', 'next_inv_number');
+        $this->db->update(db_prefix() . 'purchase_option', ['option_val' => $next_number]);
+
+        handle_tags_save($tags, $insert_id, 'pur_invoice');
+
+        $itemable_data = [];
+
+        if (count($pur_invoice_detail) > 0) {
+            foreach ($pur_invoice_detail as $key => $value) {
+                if (!isset($value[1]) || $value[1] == '') {
+                    continue;
+                }
+
+                $item_id = isset($value[0]) ? $value[0] : '';
+                $description = isset($value[1]) ? $value[1] : '';
+                $qty = isset($value[2]) ? $value[2] : 1;
+                $rate = isset($value[3]) ? $value[3] : 0;
+                $tax_id = isset($value[4]) ? $value[4] : '';
+                $amount_after_tax = isset($value[5]) ? $value[5] : 0;
+
+                $itemable_data[] = [
+                    'item_code' => $item_id,
+                    'description' => $description,
+                    'qty' => $qty,
+                    'rate' => $rate,
+                    'tax_id' => $tax_id,
+                    'amount_after_tax' => $amount_after_tax,
+                    'rel_id' => $insert_id,
+                    'rel_type' => 'pur_invoice',
+                    'item_order' => $key,
+                    'long_description' => '',
+                ];
+            }
+        }
+
+        if (count($itemable_data) > 0) {
+            $this->db->insert_batch(db_prefix() . 'itemable', $itemable_data);
+        }
+
+        if (count($pi_serial_data) > 0) {
+            $now = date('Y-m-d H:i:s');
+            $serial_rows = [];
+            foreach ($pi_serial_data as $row) {
+                $comm_code = isset($row[0]) ? trim($row[0]) : '';
+                $serial = isset($row[1]) ? trim($row[1]) : '';
+                if ($comm_code == '' || $serial == '') continue;
+                // Look up tblitems.id by commodity_code
+                $item = $this->db->query('SELECT id FROM ' . db_prefix() . "items WHERE commodity_code = '" . $this->db->escape_str($comm_code) . "'")->row();
+                $item_id = $item ? $item->id : $comm_code;
+                $serial_rows[] = [
+                    'item_id' => $item_id,
+                    'pi_id' => $insert_id,
+                    'serial_number' => $serial,
+                    'is_sold' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            if (count($serial_rows) > 0) {
+                $this->db->insert_batch(db_prefix() . 'itemserials', $serial_rows);
+            }
+        }
+
+        return $insert_id;
     }
 
     /**
@@ -4819,11 +5013,23 @@ class Purchase_model extends App_Model
      * @param        $data   The data
      */
     public function update_pur_invoice($id,$data){
+        if (isset($data['item_select'])) unset($data['item_select']);
+        if (isset($data['item_code'])) unset($data['item_code']);
+        if (isset($data['item_code_display'])) unset($data['item_code_display']);
+        if (isset($data['description'])) unset($data['description']);
+        if (isset($data['unit'])) unset($data['unit']);
+        if (isset($data['quantity'])) unset($data['quantity']);
+        if (isset($data['rate'])) unset($data['rate']);
+        if (isset($data['taxname'])) unset($data['taxname']);
+        if (isset($data['items'])) unset($data['items']);
+
         $data['invoice_date'] = to_sql_date($data['invoice_date']);
-        $data['transaction_date'] = to_sql_date($data['transaction_date']);
-        $data['subtotal'] = reformat_currency_pur($data['subtotal']);
-        $data['tax'] = reformat_currency_pur($data['subtotal']);
-        $data['total'] = reformat_currency_pur($data['total']);
+        if (isset($data['transaction_date']) && $data['transaction_date'] != '') {
+            $data['transaction_date'] = to_sql_date($data['transaction_date']);
+        }
+        $data['subtotal'] = isset($data['subtotal']) ? reformat_currency_pur($data['subtotal']) : 0;
+        $data['tax'] = isset($data['tax']) ? reformat_currency_pur($data['tax']) : 0;
+        $data['total'] = isset($data['total']) ? reformat_currency_pur($data['total']) : 0;
 
         if (isset($data['tags'])) {
             if (handle_tags_save($data['tags'], $id, 'pur_invoice')) {
@@ -4832,8 +5038,78 @@ class Purchase_model extends App_Model
             unset($data['tags']);
         }
 
+        $pur_invoice_detail = array();
+        if (isset($data['pur_invoice_detail'])) {
+            $pur_invoice_detail = json_decode($data['pur_invoice_detail'], true);
+            if (!is_array($pur_invoice_detail)) $pur_invoice_detail = [];
+            unset($data['pur_invoice_detail']);
+        }
+
+        $pi_serial_data = [];
+        if (isset($data['pi_serial_data']) && $data['pi_serial_data'] != '' && $data['pi_serial_data'] != '[]') {
+            $pi_serial_data = json_decode($data['pi_serial_data'], true);
+            if (!is_array($pi_serial_data)) $pi_serial_data = [];
+            unset($data['pi_serial_data']);
+        }
+
         $this->db->where('id',$id);
         $this->db->update(db_prefix().'pur_invoices',$data);
+
+        $this->db->where('rel_id', $id);
+        $this->db->where('rel_type', 'pur_invoice');
+        $this->db->delete(db_prefix() . 'itemable');
+
+        if (count($pur_invoice_detail) > 0) {
+            $itemable_data = [];
+            foreach ($pur_invoice_detail as $key => $value) {
+                if (isset($value[1]) && $value[1] != '') {
+                    $item_id = isset($value[0]) ? $value[0] : '';
+                    $itemable_data[] = [
+                        'item_code' => $item_id,
+                        'description' => isset($value[1]) ? $value[1] : '',
+                        'qty' => isset($value[2]) ? $value[2] : 1,
+                        'rate' => isset($value[3]) ? $value[3] : 0,
+                        'tax_id' => isset($value[4]) ? $value[4] : '',
+                        'amount_after_tax' => isset($value[5]) ? $value[5] : 0,
+                        'rel_id' => $id,
+                        'rel_type' => 'pur_invoice',
+                        'item_order' => $key,
+                        'long_description' => '',
+                    ];
+                }
+            }
+            if (count($itemable_data) > 0) {
+                $this->db->insert_batch(db_prefix() . 'itemable', $itemable_data);
+            }
+        }
+
+        if (count($pi_serial_data) > 0) {
+            $this->db->where('pi_id', $id);
+            $this->db->delete(db_prefix() . 'itemserials');
+
+            $now = date('Y-m-d H:i:s');
+            $serial_rows = [];
+            foreach ($pi_serial_data as $row) {
+                $comm_code = isset($row[0]) ? trim($row[0]) : '';
+                $serial = isset($row[1]) ? trim($row[1]) : '';
+                if ($comm_code == '' || $serial == '') continue;
+                // Look up tblitems.id by commodity_code
+                $item = $this->db->query('SELECT id FROM ' . db_prefix() . "items WHERE commodity_code = '" . $this->db->escape_str($comm_code) . "'")->row();
+                $item_id = $item ? $item->id : $comm_code;
+                $serial_rows[] = [
+                    'item_id' => $item_id,
+                    'pi_id' => $id,
+                    'serial_number' => $serial,
+                    'is_sold' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            if (count($serial_rows) > 0) {
+                $this->db->insert_batch(db_prefix() . 'itemserials', $serial_rows);
+            }
+        }
+
         if($this->db->affected_rows() > 0){
             return true;
         }
@@ -4868,12 +5144,28 @@ class Purchase_model extends App_Model
         $this->db->where('rel_id', $id);
         $this->db->delete(db_prefix().'taggables');
 
+        $this->db->where('rel_type', 'pur_invoice');
+        $this->db->where('rel_id', $id);
+        $this->db->delete(db_prefix() . 'itemable');
+
         $this->db->where('id',$id);
         $this->db->delete(db_prefix().'pur_invoices');
         if($this->db->affected_rows() > 0){
             return true;
         }
         return false;
+    }
+
+    /**
+     * Gets the pur invoice detail items from itemable.
+     *
+     * @param      int  $id     The invoice identifier
+     *
+     * @return     array  The pur invoice detail.
+     */
+    public function get_pur_invoice_detail($id){
+        $items = $this->db->query('SELECT id, rel_id, item_code, description, qty, rate, (qty * rate) as subtotal, tax_id, amount_after_tax FROM ' . db_prefix() . "itemable WHERE rel_id = " . $id . " AND rel_type = 'pur_invoice' ORDER BY item_order ASC")->result_array();
+        return $items;
     }
 
     /**
@@ -5450,5 +5742,63 @@ class Purchase_model extends App_Model
         }
 
         return true;
+    }
+
+    /**
+     * Upload serial numbers from CSV for a purchase invoice item
+     */
+    /**
+     * Get available (unsold) serials for a given item code (tblitems.id)
+     */
+    /**
+     * Save serials from Excel upload (item_code + serial_number pairs)
+     */
+    public function save_pi_serials($pi_id, $item_serials) {
+        $this->db->where('pi_id', $pi_id);
+        $this->db->delete(db_prefix() . 'itemserials');
+
+        $insert = [];
+        $now = date('Y-m-d H:i:s');
+        foreach ($item_serials as $row) {
+            $item_code = trim($row[0]);
+            $serial = trim($row[1]);
+            if ($item_code == '' || $serial == '') continue;
+            $insert[] = [
+                'item_id' => $item_code,
+                'pi_id' => $pi_id,
+                'serial_number' => $serial,
+                'is_sold' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+        if (count($insert) > 0) {
+            $this->db->insert_batch(db_prefix() . 'itemserials', $insert);
+            return count($insert);
+        }
+        return 0;
+    }
+
+    public function get_available_serials($item_code) {
+        $sql = 'SELECT s.id, s.serial_number 
+                FROM ' . db_prefix() . 'itemserials s
+                WHERE s.item_id = ' . intval($item_code) . ' 
+                AND s.is_sold = 0
+                ORDER BY s.serial_number ASC';
+        return $this->db->query($sql)->result_array();
+    }
+
+    /**
+     * Mark serials as sold (for sales invoice)
+     */
+    public function mark_serials_sold($serial_ids, $si_id) {
+        if(empty($serial_ids)) return false;
+        $now = date('Y-m-d H:i:s');
+        $this->db->where_in('id', $serial_ids);
+        $this->db->update(db_prefix() . 'itemserials', [
+            'is_sold' => 1,
+            'si_id' => $si_id,
+            'updated_at' => $now
+        ]);
     }
 }
