@@ -48,7 +48,13 @@ function app_init_admin_sidebar_menu_items()
             'badge'    => [],
         ]);
     }
-
+    $CI->app_menu->add_sidebar_children_item('sales', [
+        'slug'     => 'wa_manage_goods_delivery',
+        'name'     => _l('stock_export'),
+        'icon'     => 'fa fa-object-ungroup',
+        'href'     => admin_url('warehouse/manage_delivery'),
+        'position' => 16,
+    ]);
     // if ((staff_can('view',  'estimates') || staff_can('view_own',  'estimates'))
     //     || (staff_has_assigned_estimates() && get_option('allow_staff_view_estimates_assigned') == 1)
     // ) {

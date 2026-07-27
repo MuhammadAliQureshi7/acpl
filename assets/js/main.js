@@ -2415,12 +2415,12 @@ $(function () {
 
   $("body").on("submit", "._transaction_form", function () {
     // On submit re-calculate total and reorder the items for all cases.
+    
     calculate_total();
 
     $("body").find("#items-warning").remove();
     var $itemsTable = $(this).find("table.items");
     var $previewItem = $itemsTable.find(".main");
-
     if (
       $previewItem.find('[name="description"]').length &&
       $previewItem.find('[name="description"]').val().trim().length > 0 &&
@@ -8054,9 +8054,9 @@ function validate_invoice_form(selector) {
     },
     date: "required",
     currency: "required",
-    repeat_every_custom: {
-      min: 1,
-    },
+    // repeat_every_custom: {
+    //   min: 1,
+    // },
     number: {
       required: true,
     },

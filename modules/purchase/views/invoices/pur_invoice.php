@@ -95,7 +95,7 @@
             				<th width="10%" align="right" class="qty"><?php echo _l('purchase_quantity'); ?></th>
             				<th width="10%" align="right"><?php echo _l('rate'); ?></th>
             				<th width="10%" align="right"><?php echo _l('subtotal'); ?></th>
-            				<th width="15%" align="right"><?php echo _l('tax'); ?></th>
+            				<th width="10%" align="right"><?php echo _l('tax'); ?></th>
             				<th width="10%" align="right"><?php echo _l('subtotal_after_tax'); ?></th>
             				<th align="center"><i class="fa fa-cog"></i></th>
             			</tr>
@@ -111,16 +111,11 @@
             					<input type="number" name="quantity" min="0" value="1" class="form-control" placeholder="<?php echo _l('item_quantity_placeholder'); ?>">
             				</td>
             				<td>
-            					<input type="number" name="rate" class="form-control" placeholder="<?php echo _l('item_rate_placeholder'); ?>">
+            					<input type="number" name="rate" class="form-control" step="0.00" placeholder="<?php echo _l('item_rate_placeholder'); ?>">
             				</td>
             				<td><span class="subtotal-display">0</span></td>
             				<td>
-            					<select class="selectpicker display-block tax" data-width="100%" name="taxname" data-none-selected-text="<?php echo _l('no_tax'); ?>">
-            						<option value=""></option>
-            						<?php foreach($taxes as $tx){ ?>
-            						<option value="<?php echo html_entity_decode($tx['id']); ?>" data-taxrate="<?php echo html_entity_decode($tx['taxrate']); ?>"><?php echo html_entity_decode($tx['label']); ?> (<?php echo html_entity_decode($tx['taxrate']); ?>%)</option>
-            						<?php } ?>
-            					</select>
+            					<input type="number" name="tax" class="form-control tax-input" min="0" step="0.01" value="0">
             				</td>
             				<td><span class="amount-after-tax-display">0</span></td>
             				<td>
@@ -151,12 +146,7 @@
             				</td>
             				<td class="amount" align="right"><?php echo app_format_money($amount, ''); ?></td>
             				<td class="taxrate">
-            					<select class="selectpicker display-block tax" data-width="100%" name="items[<?php echo html_entity_decode($i); ?>][taxname]" data-none-selected-text="<?php echo _l('no_tax'); ?>">
-            						<option value=""></option>
-            						<?php foreach($taxes as $tx){ ?>
-            						<option value="<?php echo html_entity_decode($tx['id']); ?>" <?php if($item['tax_id'] == $tx['id']){ echo 'selected'; } ?> data-taxrate="<?php echo html_entity_decode($tx['taxrate']); ?>"><?php echo html_entity_decode($tx['label']); ?> (<?php echo html_entity_decode($tx['taxrate']); ?>%)</option>
-            						<?php } ?>
-            					</select>
+            					<input type="number" name="items[<?php echo html_entity_decode($i); ?>][tax_percent]" class="form-control tax-input" min="0" max="100" step="0.01" value="<?php echo html_entity_decode($item['tax_rate'] ?? 0); ?>">
             				</td>
             				<td class="amount_after_tax" align="right"><?php echo app_format_money($item['amount_after_tax'], ''); ?></td>
             				<td>
@@ -218,6 +208,10 @@
             						</div>
             					</td>
             					<td class="adjustment"></td>
+            				</tr>
+            				<tr class="total_tax_row">
+            					<td><span class="bold"><?php echo _l('total_tax'); ?> :</span></td>
+            					<td class="total_tax"></td>
             				</tr>
             				<tr>
             					<td><span class="bold"><?php echo _l('invoice_total'); ?> :</span></td>

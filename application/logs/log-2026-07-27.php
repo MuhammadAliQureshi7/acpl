@@ -1,0 +1,20 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+
+ERROR - 2026-07-27 07:07:12 --> 404 Page Not Found: /index
+ERROR - 2026-07-27 14:08:43 --> Could not find the language line "Purchase Invoices"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:45 --> Could not find the language line "unpaid"
+ERROR - 2026-07-27 14:08:59 --> Could not find the language line "Add Purchase Invoice"
+ERROR - 2026-07-27 15:38:36 --> Could not find the language line "Add Purchase Invoice"
+ERROR - 2026-07-27 15:38:40 --> Could not find the language line "Add Purchase Invoice"

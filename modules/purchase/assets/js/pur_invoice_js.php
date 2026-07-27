@@ -102,9 +102,8 @@ function calc_main_row() {
   var subtotal = qty * rate;
   $mainRow.find('.subtotal-display').text(numberWithCommas(subtotal.toFixed(2)));
 
-  var taxOpt = $mainRow.find('select[name="taxname"] option:selected');
-  var taxrate = parseFloat(taxOpt.data('taxrate')) || 0;
-  var amt_after = subtotal + (subtotal * taxrate / 100);
+  var taxrate = parseFloat($mainRow.find('input.tax-input').val()) || 0;
+  var amt_after = subtotal + (taxrate * qty);
   $mainRow.find('.amount-after-tax-display').text(numberWithCommas(amt_after.toFixed(2)));
 }
 
@@ -122,17 +121,7 @@ function pur_add_item_to_table(data) {
   var rate = parseFloat(data.rate || $('.main input[name="rate"]').val()) || 0;
   var item_code = data.item_code || $('.main input[name="item_code"]').val() || '';
   var item_code_display = data.item_code_display || $('.main input[name="item_code_display"]').val() || item_code;
-  var tax_id = data.tax_id || $('.main select[name="taxname"]').val() || '';
-  var taxrate = 0;
-
-  if(data.taxrate) {
-    taxrate = data.taxrate;
-  } else {
-    var taxOpt = data.tax_id
-      ? $('#item_select option[value="' + data.tax_id + '"]')
-      : $('.main select[name="taxname"] option:selected');
-    taxrate = parseFloat(taxOpt.data('taxrate')) || 0;
-  }
+  var tax = data.tax || parseFloat($('.main input.tax-input').val()) || 0;
 
   if(description === '' && rate === 0 && !data.description && !data.rate) {
     return;
@@ -140,12 +129,7 @@ function pur_add_item_to_table(data) {
 
   lastAddedItemKey++;
   var subtotal = qty * rate;
-  var amt_after = subtotal + (subtotal * taxrate / 100);
-
-  var taxOptions = '';
-  <?php foreach($taxes as $tx){ ?>
-  taxOptions += '<option value="<?php echo html_entity_decode($tx['id']); ?>" data-taxrate="<?php echo html_entity_decode($tx['taxrate']); ?>"><?php echo html_entity_decode($tx['label']); ?> (<?php echo html_entity_decode($tx['taxrate']); ?>%)</option>';
-  <?php } ?>
+  var amt_after = subtotal + (tax * qty);
 
   var row = '<tr class="sortable item">';
   row += '<td class="dragger"><input type="hidden" class="order" name="items[' + lastAddedItemKey + '][order]">';
@@ -153,13 +137,10 @@ function pur_add_item_to_table(data) {
   row += '<td><input type="text" class="form-control" value="' + item_code_display + '" disabled></td>';
   row += '<td class="bold description"><textarea name="items[' + lastAddedItemKey + '][description]" class="form-control" rows="2" readonly>' + description + '</textarea></td>';
   row += '<td><input type="number" min="0" name="items[' + lastAddedItemKey + '][qty]" value="' + qty + '" class="form-control"></td>';
-  row += '<td class="rate"><input type="number" name="items[' + lastAddedItemKey + '][rate]" value="' + rate + '" class="form-control"></td>';
+  row += '<td class="rate"><input type="number" step="0.01" name="items[' + lastAddedItemKey + '][rate]" value="' + rate + '" class="form-control"></td>';
   row += '<td class="amount" align="right">' + numberWithCommas(subtotal.toFixed(2)) + '</td>';
   row += '<td class="taxrate">';
-  row += '<select class="selectpicker display-block tax" data-width="100%" name="items[' + lastAddedItemKey + '][taxname]" data-none-selected-text="<?php echo _l('no_tax'); ?>">';
-  row += '<option value=""></option>';
-  row += taxOptions;
-  row += '</select>';
+  row += '<input type="number" min="0" step="0.01" name="items[' + lastAddedItemKey + '][tax]" value="' + tax + '" class="form-control tax-input">'; 
   row += '</td>';
   row += '<td class="amount_after_tax" align="right">' + numberWithCommas(amt_after.toFixed(2)) + '</td>';
   row += '<td><a href="#" class="btn btn-danger pull-left" onclick="pur_delete_item(this); return false;"><i class="fa fa-times"></i></a></td>';
@@ -174,7 +155,7 @@ function pur_add_item_to_table(data) {
   $('.main input[name="item_code_display"]').val('');
   $('.main .subtotal-display').text('0');
   $('.main .amount-after-tax-display').text('0');
-  $('.main select[name="taxname"]').selectpicker('val', '');
+  $('.main input.tax-input').val('0');
   $('.main select[name="taxname"]').selectpicker('refresh');
   $('table.items tbody tr.item select.tax').selectpicker('render');
   calculate_total();
@@ -188,13 +169,15 @@ function pur_delete_item(el) {
 
 function calculate_total() {
   "use strict";
-  var subtotal = 0, total_tax = 0, grand_total = 0;
+  var subtotal = 0, total_tax_sum = 0, grand_total = 0;
   $('table.items tbody tr.item').each(function() {
     var qty = parseFloat($(this).find('input[name*="[qty]"]').val()) || 0;
     var rate = parseFloat($(this).find('input[name*="[rate]"]').val()) || 0;
+    var tax_amount = parseFloat($(this).find('input.tax-input').val()) || 0;
     var amtText = $(this).find('td.amount_after_tax').text().replace(/,/g, '');
     var amt_after = parseFloat(amtText) || 0;
     subtotal += qty * rate;
+    total_tax_sum += tax_amount * qty;
     grand_total += amt_after;
   });
 
@@ -214,13 +197,14 @@ function calculate_total() {
   $('.subtotal').text(numberWithCommas(subtotal.toFixed(2)));
   $('.discount-total').text(numberWithCommas(discount_amount.toFixed(2)));
   $('.adjustment').text(numberWithCommas(adjustment.toFixed(2)));
+  $('.total_tax').text(numberWithCommas(total_tax_sum.toFixed(2)));
   $('.total').text(numberWithCommas(grand_total.toFixed(2)));
 
   $('input[name="subtotal"]').val(numberWithCommas(subtotal.toFixed(2)));
   $('input[name="total"]').val(numberWithCommas(grand_total.toFixed(2)));
 }
 
-$('table.items tbody').on('change keyup', 'tr.item input[name*="[qty]"], tr.item input[name*="[rate]"], tr.item select[name*="[taxname]"]', function() {
+$('table.items tbody').on('change keyup', 'tr.item input[name*="[qty]"], tr.item input[name*="[rate]"], tr.item input.tax-input', function() {
   "use strict";
   var $row = $(this).closest('tr.item');
   var qty = parseFloat($row.find('input[name*="[qty]"]').val()) || 0;
@@ -228,9 +212,8 @@ $('table.items tbody').on('change keyup', 'tr.item input[name*="[qty]"], tr.item
   var subtotal = qty * rate;
   $row.find('td.amount').text(numberWithCommas(subtotal.toFixed(2)));
 
-  var taxOpt = $row.find('select[name*="[taxname]"] option:selected');
-  var taxrate = parseFloat(taxOpt.data('taxrate')) || 0;
-  var amt_after = subtotal + (subtotal * taxrate / 100);
+  var taxrate = parseFloat($row.find('input.tax-input').val()) || 0;
+  var amt_after = subtotal + (taxrate * qty);
   $row.find('td.amount_after_tax').text(numberWithCommas(amt_after.toFixed(2)));
 
   calculate_total();
@@ -284,18 +267,16 @@ $('#pur_invoice-form').on('submit', function() {
     var desc = $row.find('textarea[name*="[description]"]').val() || '';
     var qty = parseFloat($row.find('input[name*="[qty]"]').val()) || 0;
     var rate = parseFloat($row.find('input[name*="[rate]"]').val()) || 0;
-    var tax_id = $row.find('select[name*="[taxname]"]').val() || '';
+    var taxrate = parseFloat($row.find('input.tax-input').val()) || 0;
     var subtotal = qty * rate;
-    var taxOpt = $row.find('select[name*="[taxname]"] option:selected');
-    var taxrate = parseFloat(taxOpt.data('taxrate')) || 0;
-    var amt_after = subtotal + (subtotal * taxrate / 100);
+    var amt_after = subtotal + (taxrate * qty);
 
     items.push([
       item_code,
       desc,
       qty,
       rate,
-      tax_id,
+      taxrate,
       amt_after
     ]);
   });

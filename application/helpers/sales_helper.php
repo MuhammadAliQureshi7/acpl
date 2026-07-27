@@ -677,7 +677,7 @@ function add_new_sales_item_post($item, $rel_id, $rel_type)
 
     $CI = &get_instance();
 
-    $CI->db->insert(db_prefix() . 'itemable', [
+    $insert_data = [
                     'description'      => $item['description'],
                     'long_description' => nl2br($item['long_description']),
                     'qty'              => $item['qty'],
@@ -686,7 +686,11 @@ function add_new_sales_item_post($item, $rel_id, $rel_type)
                     'rel_type'         => $rel_type,
                     'item_order'       => $item['order'],
                     'unit'             => $item['unit'],
-                ]);
+                ];
+    if (isset($item['item_code'])) {
+        $insert_data['item_code'] = $item['item_code'];
+    }
+    $CI->db->insert(db_prefix() . 'itemable', $insert_data);
 
     $id = $CI->db->insert_id();
 

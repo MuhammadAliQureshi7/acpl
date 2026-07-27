@@ -287,6 +287,7 @@ $lang['serial_excel_format_note'] = 'Excel file must have two columns: item_code
 $lang['uploaded_serials'] = 'Uploaded Serials';
 $lang['serial_number'] = 'Serial Number';
 $lang['save_serials'] = 'Save Serials';
+$lang['total_tax'] = 'Total Tax';
 
 $lang['pur_invoice_notes'] = 'Notes';
 $lang['payment_for_pur_invoice'] = 'Payments for purchase invoice';
