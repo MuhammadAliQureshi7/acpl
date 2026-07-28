@@ -237,21 +237,22 @@
             				<div id="collapse_serials" class="panel-collapse collapse">
             					<div class="panel-body">
             						<div class="row">
-            							<div class="col-md-6">
+            							<div class="col-md-4">
             								<div class="form-group">
             									<label><?php echo _l('upload_serial_excel'); ?></label>
             									<input type="file" id="serial_excel_input" accept=".xlsx,.xls,.csv" class="form-control" onchange="pur_parse_serial_excel(); return false;">
             									<p class="text-muted"><?php echo _l('serial_excel_format_note'); ?></p>
             								</div>
             							</div>
-            							<div class="col-md-6">
-            								<h5><?php echo _l('uploaded_serials'); ?>: <span id="serial_count_display">0</span></h5>
-            								<div class="table-responsive" style="max-height:200px; overflow-y:auto;">
+            							<div class="col-md-8">
+            								<h5><?php echo _l('uploaded_serials'); ?>: <span id="serial_count_display">0</span> <button type="button" class="btn btn-sm btn-success" onclick="pur_add_serial_row(); return false;"><i class="fa fa-plus"></i></button> <button type="button" class="btn btn-sm btn-danger" onclick="pur_clear_serials(); return false;"><i class="fa fa-trash"></i></button></h5>
+            								<div class="table-responsive" style="max-height:250px; overflow-y:auto;">
             									<table class="table table-bordered table-condensed" id="serial_preview_table">
             										<thead>
-            											<tr><th><?php echo _l('commodity_code'); ?></th><th><?php echo _l('serial_number'); ?></th></tr>
+            											<tr><th width="40%"><?php echo _l('commodity_code'); ?></th><th width="50%"><?php echo _l('serial_number'); ?></th><th width="10%"></th></tr>
             										</thead>
-            										<tbody></tbody>
+            										<tbody>
+            										</tbody>
             									</table>
             								</div>
             							</div>

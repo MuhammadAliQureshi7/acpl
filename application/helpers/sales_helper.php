@@ -690,6 +690,12 @@ function add_new_sales_item_post($item, $rel_id, $rel_type)
     if (isset($item['item_code'])) {
         $insert_data['item_code'] = $item['item_code'];
     }
+    if (isset($item['total_tax'])) {
+        $insert_data['total_tax'] = $item['total_tax'];
+    }
+    if (isset($item['amount_after_tax'])) {
+        $insert_data['amount_after_tax'] = $item['amount_after_tax'];
+    }
     $CI->db->insert(db_prefix() . 'itemable', $insert_data);
 
     $id = $CI->db->insert_id();
@@ -730,6 +736,15 @@ function update_sales_item_post($item_id, $data, $field = '')
             'qty'              => $data['qty'],
             'unit'             => $data['unit'],
         ];
+        if (isset($data['item_code'])) {
+            $update['item_code'] = $data['item_code'];
+        }
+        if (isset($data['total_tax'])) {
+            $update['total_tax'] = $data['total_tax'];
+        }
+        if (isset($data['amount_after_tax'])) {
+            $update['amount_after_tax'] = $data['amount_after_tax'];
+        }
     }
 
     $CI = &get_instance();

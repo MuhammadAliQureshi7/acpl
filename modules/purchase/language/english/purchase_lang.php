@@ -288,6 +288,10 @@ $lang['uploaded_serials'] = 'Uploaded Serials';
 $lang['serial_number'] = 'Serial Number';
 $lang['save_serials'] = 'Save Serials';
 $lang['total_tax'] = 'Total Tax';
+$lang['manual_serial_entry'] = 'Manual Serial Entry';
+$lang['manual_serial_placeholder'] = 'One serial per line or: item_code,serial_number';
+$lang['add_serials'] = 'Add Serials';
+$lang['clear_serials'] = 'Clear';
 
 $lang['pur_invoice_notes'] = 'Notes';
 $lang['payment_for_pur_invoice'] = 'Payments for purchase invoice';

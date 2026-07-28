@@ -73,14 +73,14 @@
                     </div>
                 </div>
                 <?php } ?>
-                <!-- <div class="row">
+                <!--<div class="row">
                     <div class="col-md-12">
                         <hr class="hr-10" />
                         <a href="#" class="edit_shipping_billing_info" data-toggle="modal"
                             data-target="#billing_and_shipping_details"><i class="fa-regular fa-pen-to-square"></i></a>
                         <?php include_once(APPPATH . 'views/admin/invoices/billing_and_shipping_template.php'); ?>
                     </div>
-                    <div class="col-md-6">
+                     <div class="col-md-6">
                         <p class="bold"><?php echo _l('invoice_bill_to'); ?></p>
                         <address>
                             <span class="billing_street">
@@ -105,7 +105,7 @@
                                 <?php $billing_zip = ($billing_zip == '' ? '--' :$billing_zip); ?>
                                 <?php echo $billing_zip; ?></span>
                         </address>
-                    </div>
+                    </div> 
                     <div class="col-md-6">
                         <p class="bold"><?php echo _l('ship_to'); ?></p>
                         <address>
@@ -132,7 +132,7 @@
                                 <?php echo $shipping_zip; ?></span>
                         </address>
                     </div>
-                </div> -->
+                </div>-->
                 <?php
                $next_invoice_number = get_option('next_invoice_number');
                $format              = get_option('invoice_number_format');
@@ -286,27 +286,27 @@
                             name="allowed_payment_modes[]" data-actions-box="true" multiple="true" data-width="100%"
                             data-title="<?php echo _l('dropdown_non_selected_tex'); ?>">
                             <?php foreach ($payment_modes as $mode) {
-                            $selected = '';
-                            if (isset($invoice)) {
-                                if ($invoice->allowed_payment_modes) {
-                                    $inv_modes = unserialize($invoice->allowed_payment_modes);
-                                    if (is_array($inv_modes)) {
-                                        foreach ($inv_modes as $_allowed_payment_mode) {
-                                            if ($_allowed_payment_mode == $mode['id']) {
-                                                $selected = ' selected';
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                if ($mode['selected_by_default'] == 1) {
-                                    $selected = ' selected';
-                                }
-                            } ?>
-                                <option value="<?php echo $mode['id']; ?>" <?php echo $selected; ?>>
-                                    <?php echo $mode['name']; ?></option>
-                                <?php
-                            } ?>
+                   $selected = '';
+                   if (isset($invoice)) {
+                       if ($invoice->allowed_payment_modes) {
+                           $inv_modes = unserialize($invoice->allowed_payment_modes);
+                           if (is_array($inv_modes)) {
+                               foreach ($inv_modes as $_allowed_payment_mode) {
+                                   if ($_allowed_payment_mode == $mode['id']) {
+                                       $selected = ' selected';
+                                   }
+                               }
+                           }
+                       }
+                   } else {
+                       if ($mode['selected_by_default'] == 1) {
+                           $selected = ' selected';
+                       }
+                   } ?>
+                            <option value="<?php echo $mode['id']; ?>" <?php echo $selected; ?>>
+                                <?php echo $mode['name']; ?></option>
+                            <?php
+               } ?>
                         </select>
                         <?php } else { ?>
                         <p class="tw-text-neutral-500">
@@ -397,8 +397,8 @@
                               } ?>><?php echo _l('recurring_custom'); ?></option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="col-md-6">
+                        </div> -->
+                        <!-- <div class="col-md-6">
                             <div class="form-group select-placeholder">
                                 <label for="discount_type"
                                     class="control-label"><?php echo _l('discount_type'); ?></label>
@@ -444,7 +444,7 @@
                               } ?>><?php echo _l('invoice_recurring_years'); ?></option>
                                 </select>
                             </div>
-                        </div> -->
+                        </div>
                         <div id="cycles_wrapper" class="<?php if (!isset($invoice) || (isset($invoice) && $invoice->recurring == 0)) {
                                   echo ' hide';
                               }?>">
@@ -476,7 +476,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <?php $value = (isset($invoice) ? $invoice->adminnote : ''); ?>
                     <?php echo render_textarea('adminnote', 'invoice_add_edit_admin_note', $value); ?>
 
@@ -492,8 +492,8 @@
             <div class="col-md-4">
                 <?php $this->load->view('admin/invoice_items/item_select'); ?>
             </div>
-            <?php if (!isset($invoice_from_project) && isset($billable_tasks)) { ?>
-            <div class="col-md-3 hide">
+            <?php // if (!isset($invoice_from_project) && isset($billable_tasks)) { ?>
+            <!-- <div class="col-md-3">
                 <div class="form-group select-placeholder input-group-select form-group-select-task_select popover-250">
                     <div class="input-group input-group-select">
                         <select name="task_select" data-live-search="true" id="task_select"
@@ -523,14 +523,14 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <?php
-                            } ?>
-            <div class="col-md-<?php if (!isset($invoice_from_project)) {
+                           // } ?>
+            <!-- <div class="col-md-<?php if (!isset($invoice_from_project)) {
                                 echo 5;
                             } else {
                                 echo 8;
-                            } ?> text-right show_quantity_as_wrapper hide">
+                            } ?> text-right show_quantity_as_wrapper">
                 <div class="mtop10">
                     <span><?php echo _l('show_quantity_as'); ?> </span>
                     <div class="radio radio-primary radio-inline">
@@ -558,8 +558,8 @@
                             for="sq_3"><?php echo _l('invoice_table_quantity_heading'); ?>/<?php echo _l('invoice_table_hours_heading'); ?></label>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div>-->
+        </div> 
         <?php if (isset($invoice_from_project)) {
                                 echo '<hr class="no-mtop" />';
                             } ?>
@@ -568,7 +568,7 @@
                 <thead>
                     <tr>
                         <th></th>
-                        <th width="15%" align="left"><i class="fa-solid fa-circle-exclamation tw-mr-1"
+                        <th width="20%" align="left"><i class="fa-solid fa-circle-exclamation tw-mr-1"
                                 aria-hidden="true" data-toggle="tooltip"
                                 data-title="<?php echo _l('item_description_new_lines_notice'); ?>"></i>
                             <?php echo _l('invoice_table_item_heading'); ?></th>
@@ -585,17 +585,17 @@
                          $qty_heading = _l('invoice_table_quantity_heading') . '/' . _l('invoice_table_hours_heading');
                      }
                      ?>
-                        <th width="8%" align="right" class="qty"><?php echo $qty_heading; ?></th>
+                        <th width="10%" align="right" class="qty"><?php echo $qty_heading; ?></th>
                         <th width="10%" align="right"><?php echo _l('invoice_table_rate_heading'); ?></th>
-                        <th width="10%" align="right"><?php echo _l('invoice_table_amount_heading'); ?></th>
                         <th width="10%" align="right"><?php echo _l('invoice_table_tax_heading'); ?></th>
+                        <th width="10%" align="right"><?php echo _l('invoice_table_amount_heading'); ?></th>
                         <th width="10%" align="right"><?php echo _l('subtotal_after_tax'); ?></th>
                         <th width="10%" align="center"><?php echo _l('serials'); ?></th>
                         <th align="center"><i class="fa fa-cog"></i></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="main" style="display:none;">
+                    <tr class="main">
                         <td></td>
                         <td>
                             <textarea name="description" class="form-control" rows="4"
@@ -614,15 +614,29 @@
                                 class="form-control input-transparent text-right">
                         </td>
                         <td>
-                            <input type="number" name="rate" class="form-control" step="0.01"
+                            <input type="number" name="rate" class="form-control"
                                 placeholder="<?php echo _l('item_rate_placeholder'); ?>">
                         </td>
-                        <td></td>
                         <td>
-                            <input type="number" class="form-control tax-input" min="0" step="0.01" value="0" name="tax_percent">
+                            <?php
+                        $default_tax = unserialize(get_option('default_tax'));
+                        $select      = '<select class="selectpicker display-block tax main-tax" data-width="100%" name="taxname" multiple data-none-selected-text="' . _l('no_tax') . '">';
+                      //  $select .= '<option value=""'.(count($default_tax) == 0 ? ' selected' : '').'>'._l('no_tax').'</option>';
+                        foreach ($taxes as $tax) {
+                            $selected = '';
+                            if (is_array($default_tax)) {
+                                if (in_array($tax['name'] . '|' . $tax['taxrate'], $default_tax)) {
+                                    $selected = ' selected ';
+                                }
+                            }
+                            $select .= '<option value="' . $tax['name'] . '|' . $tax['taxrate'] . '"' . $selected . 'data-taxrate="' . $tax['taxrate'] . '" data-taxname="' . $tax['name'] . '" data-subtext="' . $tax['name'] . '">' . $tax['taxrate'] . '%</option>';
+                        }
+                        $select .= '</select>';
+                        echo $select;
+                        ?>
                         </td>
                         <td></td>
-                        <td align="center">-</td>
+                        <td></td>
                         <td align="center">-</td>
                         <td>
                             <?php
@@ -661,9 +675,11 @@
                                 $amount = app_format_number($amount);
                                 // order input
                                 $table_row .= '<input type="hidden" class="order" name="' . $items_indicator . '[' . $i . '][order]">';
+                                $item_code_val = isset($item['item_code']) && $item['item_code'] != '' ? $item['item_code'] : (isset($item['id']) ? $item['id'] : '');
+                                $table_row .= '<input type="hidden" name="' . $items_indicator . '[' . $i . '][item_code]" value="' . $item_code_val . '">';
                                 $table_row .= '</td>';
                                 $table_row .= '<td class="bold description"><textarea name="' . $items_indicator . '[' . $i . '][description]" class="form-control" rows="5">' . clear_textarea_breaks($item['description']) . '</textarea></td>';
-                                $table_row .= '<td><textarea name="' . $items_indicator . '[' . $i . '][long_description]" class="form-control" rows="5">' . clear_textarea_breaks($item['long_description']) . '</textarea></td>';
+                                $table_row .= '<td><textarea name="' . $items_indicator . '[' . $i . '][long_description]" class="form-control" rows="5" readonly>' . clear_textarea_breaks($item['long_description']) . '</textarea></td>';
 
                                 $table_row .= render_custom_fields_items_table_in($item, $items_indicator . '[' . $i . ']');
 
@@ -678,17 +694,12 @@
                                 $table_row .= '<input type="text" placeholder="' . $unit_placeholder . '" name="' . $items_indicator . '[' . $i . '][unit]" class="form-control input-transparent text-right" value="' . $item['unit'] . '">';
 
                                 $table_row .= '</td>';
-                                $table_row .= '<td class="rate"><input type="number" step="0.01" data-toggle="tooltip" title="' . _l('numbers_not_formatted_while_editing') . '" onblur="calculate_total();" onchange="calculate_total();" name="' . $items_indicator . '[' . $i . '][rate]" value="' . $item['rate'] . '" class="form-control"></td>';
+                                $table_row .= '<td class="rate"><input type="number" data-toggle="tooltip" title="' . _l('numbers_not_formatted_while_editing') . '" onblur="calculate_total();" onchange="calculate_total();" name="' . $items_indicator . '[' . $i . '][rate]" value="' . $item['rate'] . '" class="form-control"></td>';
+                                $table_row .= '<td class="taxrate">' . $this->misc_model->get_taxes_dropdown_template('' . $items_indicator . '[' . $i . '][taxname][]', $invoice_item_taxes, 'invoice', $item['id'], true, $manual) . '</td>';
                                 $table_row .= '<td class="amount" align="right">' . $amount . '</td>';
-                                $tax_val = 0;
-                                if(isset($item['taxname']) && is_array($item['taxname'])) {
-                                    foreach($item['taxname'] as $tn) {
-                                        $parts = explode('|', $tn);
-                                        if(isset($parts[1])) $tax_val += floatval($parts[1]);
-                                    }
-                                }
-                                $table_row .= '<td class="taxrate"><input type="number" class="form-control tax-input" min="0" step="0.01" name="' . $items_indicator . '[' . $i . '][tax_percent]" value="' . $tax_val . '"></td>';
-                                $table_row .= '<td class="amount" align="right">' . $amount . '</td>';
+                                $table_row .= '<td class="amount_after_tax" align="right">' . app_format_number($amount) . '</td>';
+                                $item_code_for_serial = isset($item['item_code']) && $item['item_code'] != '' ? $item['item_code'] : (isset($item['id']) ? $item['id'] : '');
+                                $table_row .= '<td align="center"><select class="selectpicker serials-select" data-width="100%" multiple data-none-selected-text="-" data-item-code="' . $item_code_for_serial . '"></select></td>';
                                 $table_row .= '<td><a href="#" class="btn btn-danger pull-left" onclick="delete_item(this,' . $item['id'] . '); return false;"><i class="fa fa-times"></i></a></td>';
                                 if (isset($item['task_id'])) {
                                     if (!is_array($item['task_id'])) {

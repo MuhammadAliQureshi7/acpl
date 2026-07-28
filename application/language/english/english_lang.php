@@ -31,6 +31,7 @@ $lang['invoice_pdf_heading']                   = 'SALE INVOICE';
 $lang['invoice_table_item_heading']            = 'Item';
 $lang['invoice_table_quantity_heading']        = 'Qty';
 $lang['invoice_table_rate_heading']            = 'Rate';
+$lang['total_tax']                              = 'Total Tax';
 $lang['invoice_table_tax_heading']             = 'Tax';
 $lang['invoice_table_amount_heading']          = 'Amount';
 $lang['invoice_subtotal']                      = 'Sub Total';

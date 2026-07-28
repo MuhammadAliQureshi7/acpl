@@ -103,7 +103,7 @@ function calc_main_row() {
   $mainRow.find('.subtotal-display').text(numberWithCommas(subtotal.toFixed(2)));
 
   var taxrate = parseFloat($mainRow.find('input.tax-input').val()) || 0;
-  var amt_after = subtotal + (taxrate * qty);
+  var amt_after = subtotal + taxrate;
   $mainRow.find('.amount-after-tax-display').text(numberWithCommas(amt_after.toFixed(2)));
 }
 
@@ -129,7 +129,7 @@ function pur_add_item_to_table(data) {
 
   lastAddedItemKey++;
   var subtotal = qty * rate;
-  var amt_after = subtotal + (tax * qty);
+  var amt_after = subtotal + tax;
 
   var row = '<tr class="sortable item">';
   row += '<td class="dragger"><input type="hidden" class="order" name="items[' + lastAddedItemKey + '][order]">';
@@ -177,7 +177,7 @@ function calculate_total() {
     var amtText = $(this).find('td.amount_after_tax').text().replace(/,/g, '');
     var amt_after = parseFloat(amtText) || 0;
     subtotal += qty * rate;
-    total_tax_sum += tax_amount * qty;
+    total_tax_sum += tax_amount;
     grand_total += amt_after;
   });
 
@@ -269,7 +269,7 @@ $('#pur_invoice-form').on('submit', function() {
     var rate = parseFloat($row.find('input[name*="[rate]"]').val()) || 0;
     var taxrate = parseFloat($row.find('input.tax-input').val()) || 0;
     var subtotal = qty * rate;
-    var amt_after = subtotal + (taxrate * qty);
+  var amt_after = subtotal + taxrate;
 
     items.push([
       item_code,
@@ -349,18 +349,58 @@ function pur_parse_serial_excel() {
   }
 }
 
+function pur_add_serial_row() {
+  "use strict";
+  piSerialsData.push(['', '']);
+  updateSerialPreview();
+}
+
+function pur_clear_serials() {
+  "use strict";
+  piSerialsData = [];
+  updateSerialPreview();
+}
+
+function pur_remove_serial_row(idx) {
+  "use strict";
+  piSerialsData.splice(idx, 1);
+  updateSerialPreview();
+}
+
 function updateSerialPreview() {
   "use strict";
   var tbody = document.querySelector('#serial_preview_table tbody');
   tbody.innerHTML = '';
-  piSerialsData.forEach(function(row) {
+  piSerialsData.forEach(function(row, idx) {
     var tr = document.createElement('tr');
-    tr.innerHTML = '<td>' + row[0] + '</td><td>' + row[1] + '</td>';
+    tr.innerHTML = '<td><input type="text" class="form-control input-sm serial-item-code" value="' + row[0] + '"></td><td><input type="text" class="form-control input-sm serial-number" value="' + row[1] + '"></td><td><button type="button" class="btn btn-danger btn-xs" onclick="pur_remove_serial_row(' + idx + '); return false;"><i class="fa fa-times"></i></button></td>';
     tbody.appendChild(tr);
   });
   document.getElementById('serial_count_display').textContent = piSerialsData.length;
-  $('input[name="pi_serial_data"]').val(JSON.stringify(piSerialsData));
+  // Read values from inputs and save to hidden field
+  setTimeout(function() { pur_sync_serial_data(); }, 50);
 }
+
+function pur_sync_serial_data() {
+  "use strict";
+  var data = [];
+  document.querySelectorAll('#serial_preview_table tbody tr').forEach(function(tr) {
+    var itemCode = tr.querySelector('.serial-item-code') ? tr.querySelector('.serial-item-code').value.trim() : '';
+    var serial = tr.querySelector('.serial-number') ? tr.querySelector('.serial-number').value.trim() : '';
+    if(serial != '') {
+      data.push([itemCode, serial]);
+    }
+  });
+  piSerialsData = data;
+  document.getElementById('serial_count_display').textContent = data.length;
+  $('input[name="pi_serial_data"]').val(JSON.stringify(data));
+}
+
+// Auto-sync on input change
+$(document).on('change keyup', '#serial_preview_table input', function() {
+  "use strict";
+  pur_sync_serial_data();
+});
 
 </script>
 </script>

@@ -322,6 +322,7 @@ class Invoices extends AdminController
 
                 $id = $this->invoices_model->add($invoice_data);
                 if ($id) {
+                    $this->_process_invoice_serials($invoice_data, $id);
                     set_alert('success', _l('added_successfully', _l('invoice')));
                     $redUrl = admin_url('invoices/list_invoices/' . $id);
 
@@ -354,6 +355,7 @@ class Invoices extends AdminController
                 }
                 $success = $this->invoices_model->update($invoice_data, $id);
                 if ($success) {
+                    $this->_process_invoice_serials($invoice_data, $id);
                     set_alert('success', _l('updated_successfully', _l('invoice')));
                 }
 
@@ -484,6 +486,44 @@ class Invoices extends AdminController
         }
 
         $this->load->view('admin/invoices/invoice_preview_template', $data);
+    }
+
+    /**
+     * Process serials for invoice — mark selected serials as sold
+     */
+    private function _process_invoice_serials($data, $invoice_id)
+    {
+        $this->load->model('purchase/purchase_model');
+        $serial_ids = [];
+        // Collect serial IDs from newitems
+        if (isset($data['newitems'])) {
+            foreach ($data['newitems'] as $item) {
+                if (isset($item['serials']) && is_array($item['serials'])) {
+                    foreach ($item['serials'] as $sid) {
+                        if ($sid != '') $serial_ids[] = $sid;
+                    }
+                }
+            }
+        }
+        // Collect serial IDs from existing items (edit mode)
+        if (isset($data['items'])) {
+            foreach ($data['items'] as $item) {
+                if (isset($item['serials']) && is_array($item['serials'])) {
+                    foreach ($item['serials'] as $sid) {
+                        if ($sid != '') $serial_ids[] = $sid;
+                    }
+                }
+            }
+        }
+        if (count($serial_ids) > 0) {
+            $now = date('Y-m-d H:i:s');
+            $this->db->where_in('id', $serial_ids);
+            $this->db->update(db_prefix() . 'itemserials', [
+                'is_sold' => 1,
+                'si_id' => $invoice_id,
+                'updated_at' => $now
+            ]);
+        }
     }
 
     public function apply_credits($invoice_id)

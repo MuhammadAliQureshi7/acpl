@@ -4894,16 +4894,15 @@ class Purchase_model extends App_Model
         $data['payment_status'] = 'unpaid';
 
         $prefix = get_purchase_option('pur_inv_prefix');
-
-        $this->db->where('invoice_number', $data['invoice_number']);
-        $check_exist_number = $this->db->get(db_prefix().'pur_invoices')->row();
-
-        while ($check_exist_number) {
-            $data['number'] = $data['number'] + 1;
-            $data['invoice_number'] = $prefix . str_pad($data['number'], 5, '0', STR_PAD_LEFT);
-            $this->db->where('invoice_number', $data['invoice_number']);
-            $check_exist_number = $this->db->get(db_prefix().'pur_invoices')->row();
+        $this->db->select_max('number');
+        $max_number = $this->db->get(db_prefix().'pur_invoices')->row()->number;
+        if ($max_number > 0) {
+            $next_number = $max_number + 1;
+        } else {
+            $next_number = get_purchase_option('next_inv_number');
         }
+        $data['number'] = $next_number;
+        $data['invoice_number'] = $prefix . str_pad($next_number, 5, '0', STR_PAD_LEFT);
 
         $data['invoice_date'] = to_sql_date($data['invoice_date']);
         if (isset($data['transaction_date']) && $data['transaction_date'] != '') {

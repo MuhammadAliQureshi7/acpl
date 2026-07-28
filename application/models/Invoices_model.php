@@ -330,7 +330,7 @@ class Invoices_model extends App_Model
         $cancel_merged_invoices = isset($data['cancel_merged_invoices']);
 
         $tags = isset($data['tags']) ? $data['tags'] : '';
-
+        
         if (isset($data['save_as_draft'])) {
             $data['status'] = self::STATUS_DRAFT;
             unset($data['save_as_draft']);
@@ -387,7 +387,7 @@ class Invoices_model extends App_Model
 
         $data  = $hook['data'];
         $items = $hook['items'];
-
+        unset($data['tax_percent']);
         $this->db->insert(db_prefix() . 'invoices', $data);
         $insert_id = $this->db->insert_id();
         if ($insert_id) {
