@@ -90,7 +90,7 @@ $pdf->Ln(hooks()->apply_filters('pdf_info_and_table_separator', 6));
 
 // The items table
 $items = get_items_table_data($invoice, 'invoice', 'pdf');
-
+// dd($items->table());
 $tblhtml = $items->table();
 
 $pdf->writeHTML($tblhtml, true, false, false, false, '');
@@ -118,10 +118,26 @@ if (is_sale_discount_applied($invoice)) {
     </tr>';
 }
 
-foreach ($items->taxes() as $tax) {
+// Calculate total_tax from tblitemable (sum of total_tax column)
+$total_tax_pdf = 0;
+$items_data = get_items_by_type('invoice', $invoice->id);
+foreach($items_data as $itm){
+    if(isset($itm['total_tax']) && $itm['total_tax'] != '' && $itm['total_tax'] > 0){
+        $total_tax_pdf += floatval($itm['total_tax']);
+    }
+}
+// Fallback: if no total_tax found, use old tax calculation from items table
+if($total_tax_pdf == 0){
+    foreach ($items->taxes() as $tax) {
+        $tbltotal .= '<tr>
+        <td align="right" width="85%"><strong>' . $tax['taxname'] . ' (' . app_format_number($tax['taxrate']) . '%)' . '</strong></td>
+        <td align="right" width="15%">' . app_format_money($tax['total_tax'], $invoice->currency_name) . '</td>
+    </tr>';
+    }
+} else {
     $tbltotal .= '<tr>
-    <td align="right" width="85%"><strong>' . $tax['taxname'] . ' (' . app_format_number($tax['taxrate']) . '%)' . '</strong></td>
-    <td align="right" width="15%">' . app_format_money($tax['total_tax'], $invoice->currency_name) . '</td>
+    <td align="right" width="85%"><strong>' . _l('total_tax') . '</strong></td>
+    <td align="right" width="15%">' . app_format_money($total_tax_pdf, $invoice->currency_name) . '</td>
 </tr>';
 }
 
@@ -167,6 +183,7 @@ if (get_option('show_amount_due_on_invoice') == 1 && $invoice->status != Invoice
 }
 
 $tbltotal .= '</table>';
+
 $pdf->writeHTML($tbltotal, true, false, false, false, '');
 
 if (get_option('total_to_words_enabled') == 1) {

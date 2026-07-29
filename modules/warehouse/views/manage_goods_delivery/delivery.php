@@ -97,18 +97,18 @@
                         </div>
 
 
-                      <div class=" col-md-3">
+                      <div class=" col-md-3 hide">
                           <?php $to = (isset($goods_delivery) ? $goods_delivery->to_ : '');
                           echo render_input('to_','receiver',$to, '',$disabled) ?>
                       </div>
-                      <div class=" col-md-6">
+                      <div class=" col-md-6 hide">
                           <?php $address = (isset($goods_delivery) ? $goods_delivery->address : '');
                           echo render_input('address','address',$address,'', $disabled) ?>
                       </div>
 
                   <?php if(ACTIVE_PROPOSAL == true){ ?>
 
-                    <div class="col-md-3 form-group <?php if($pr_orders_status == false){ echo 'hide';} ;?>" >
+                    <div class="col-md-3 form-group hide <?php if($pr_orders_status == false){ echo 'hide';} ;?>" >
                       <label for="project"><?php echo _l('project'); ?></label>
                         <select name="project" id="project" class="selectpicker" data-live-search="true" data-width="100%" data-none-selected-text="<?php echo _l('ticket_settings_none_assigned'); ?>">
                           <option value=""></option>
@@ -121,7 +121,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3 form-group <?php if($pr_orders_status == false){ echo 'hide';} ;?>" >
+                    <div class="col-md-3 form-group hide <?php if($pr_orders_status == false){ echo 'hide';} ;?>" >
                       <label for="type"><?php echo _l('type_label'); ?></label>
                         <select name="type" id="type" class="selectpicker" data-live-search="true" data-width="100%" data-none-selected-text="<?php echo _l('ticket_settings_none_assigned'); ?>">
                           <option value=""></option>
@@ -130,7 +130,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3 form-group <?php if($pr_orders_status == false){ echo 'hide';} ;?>" >
+                    <div class="col-md-3 form-group hide <?php if($pr_orders_status == false){ echo 'hide';} ;?>" >
                       <label for="department"><?php echo _l('department'); ?></label>
                         <select name="department" id="department" class="selectpicker" data-live-search="true" data-width="100%" data-none-selected-text="<?php echo _l('ticket_settings_none_assigned'); ?>">
                           <option value=""></option>
@@ -144,7 +144,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3 form-group <?php if($pr_orders_status == false){ echo 'hide';} ;?>" >
+                    <div class="col-md-3 form-group hide <?php if($pr_orders_status == false){ echo 'hide';} ;?>" >
                       <label for="requester"><?php echo _l('requester'); ?></label>
                         <select name="requester" id="requester" class="selectpicker" data-live-search="true" data-width="100%" data-none-selected-text="<?php echo _l('ticket_settings_none_assigned'); ?>">
                           <option value=""></option>
@@ -193,7 +193,7 @@
                       </div>
 
                  
-                    <div class="col-md-3 form-group" >
+                    <div class="col-md-3 form-group hide" >
                       <?php $invoice_no = (isset($goods_delivery) ? $goods_delivery->invoice_no : '');
                           echo render_input('invoice_no','invoice_no',$invoice_no, '',$disabled) ?>
 
@@ -327,11 +327,11 @@
                     </div>
 
                     <div class="panel-body mtop10 invoice-item">
-                      <div class="row">
+                      <!-- <div class="row">
                         <div class="col-md-4">
                           <?php $this->load->view('warehouse/item_include/main_item_select'); ?>
                         </div>
-                      </div>
+                      </div> -->
 
                       <div class="table-responsive s_table ">
                         <table class="table invoice-items-table items table-main-invoice-edit has-calculations no-mtop">

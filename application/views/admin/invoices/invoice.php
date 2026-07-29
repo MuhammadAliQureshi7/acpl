@@ -66,10 +66,10 @@ $(function() {
 
             grand_total = grand_total - discount_amount + adjustment;
 
-            // Add total tax row under adjustment
+            // Add total tax row under discount
             if(total_tax_sum > 0) {
-                $('.adjustment').parent().after(
-                    '<tr class="total-tax-row"><td><span class="bold">Total Tax</span></td><td class="total-tax">' + format_money(total_tax_sum) + '</td></tr>'
+                $('#discount_area').after(
+                    '<tr class="total-tax-row"><td><span class="bold">' + app.lang.total_tax + '</span></td><td class="total-tax">' + format_money(total_tax_sum) + '</td></tr>'
                 );
             }
 

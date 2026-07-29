@@ -48,6 +48,11 @@ class Invoice_pdf extends App_pdf
         return 'invoice';
     }
 
+    public function get_format_array()
+    {
+        return ['orientation' => 'L', 'format' => 'A4'];
+    }
+
     protected function file_path()
     {
         $customPath = APPPATH . 'views/themes/' . active_clients_theme() . '/views/my_invoicepdf.php';

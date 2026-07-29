@@ -78,8 +78,9 @@ abstract class App_items_table_template
         'item'   => '',
         'qty'    => '',
         'rate'   => '',
-        'tax'    => '',
         'amount' => '',
+        'tax'    => '',
+        'amount_after_tax' => '',
     ];
 
     /**
@@ -192,7 +193,13 @@ abstract class App_items_table_template
 
         if ($this->show_tax_per_item()) {
             $itemHTML .= '<td align="right" width="' . $width . '%">';
-            if (count($item['taxes']) > 0) {
+            // Check if total_tax is available from tblitemable
+            if(isset($item['total_tax']) && $item['total_tax'] != '' && $item['total_tax'] > 0){
+                $itemHTML .= app_format_money($item['total_tax'], $this->transaction->currency_name, $this->exclude_currency());
+                $itemHTML .= '</td>';
+                $itemHTML .= '<td align="right" width="' . $width . '%">';
+                $itemHTML .= app_format_money(($item['qty'] * $item['rate']) + $item['total_tax'], $this->transaction->currency_name, $this->exclude_currency());                
+            } elseif (count($item['taxes']) > 0) {
                 foreach ($item['taxes'] as $tax) {
                     $item_tax = '';
                     if ((count($item['taxes']) > 1 && get_option('remove_tax_name_from_item_table') == false) || get_option('remove_tax_name_from_item_table') == false || multiple_taxes_found_for_item($item['taxes'])) {
@@ -441,6 +448,10 @@ abstract class App_items_table_template
     {
         return $this->headings['amount'];
     }
+    public function amount_after_tax_heading()
+    {
+        return $this->headings['amount_after_tax'];
+    }
 
     /**
      * Set headings for the items
@@ -468,6 +479,7 @@ abstract class App_items_table_template
         $this->headings['rate']   = _l($langFrom . '_table_rate_heading', '', false);
         $this->headings['tax']    = _l($langFrom . '_table_tax_heading', '', false);
         $this->headings['amount'] = _l($langFrom . '_table_amount_heading', '', false);
+        $this->headings['amount_after_tax'] = _l('invoice_table_amount_heading', '', false) . ' (inc)';
 
         return $this;
     }

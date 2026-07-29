@@ -213,7 +213,7 @@ $('table.items tbody').on('change keyup', 'tr.item input[name*="[qty]"], tr.item
   $row.find('td.amount').text(numberWithCommas(subtotal.toFixed(2)));
 
   var taxrate = parseFloat($row.find('input.tax-input').val()) || 0;
-  var amt_after = subtotal + (taxrate * qty);
+  var amt_after = subtotal + taxrate;
   $row.find('td.amount_after_tax').text(numberWithCommas(amt_after.toFixed(2)));
 
   calculate_total();

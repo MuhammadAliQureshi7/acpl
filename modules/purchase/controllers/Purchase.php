@@ -4653,6 +4653,18 @@ class purchase extends AdminController
     }
 
     /**
+     * Print purchase invoice
+     */
+    public function print_pur_invoice($id){
+        $pur_invoice = $this->purchase_model->get_pur_invoice($id);
+        if(!$pur_invoice){ blank_page('Invoice Not Found', 'danger'); }
+        include_once(APP_MODULES_PATH . '/purchase/libraries/pdf/Pur_invoice_pdf.php');
+        $pdf = new Pur_invoice_pdf($pur_invoice);
+        $pdf->prepare();
+        $pdf->Output($pur_invoice->invoice_number . '.pdf', 'I');
+    }
+
+    /**
      * Removes a po logo.
      */
     public function remove_po_logo(){

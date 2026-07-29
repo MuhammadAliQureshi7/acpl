@@ -4886,8 +4886,8 @@ class Purchase_model extends App_Model
         if (isset($data['rate'])) unset($data['rate']);
         if (isset($data['taxname'])) unset($data['taxname']);
         if (isset($data['items'])) unset($data['items']);
-
-
+        if (isset($data['pi_serial_data'])) unset($data['pi_serial_data']);
+        
 
         $data['add_from'] = get_staff_user_id();
         $data['date_add'] = date('Y-m-d');
@@ -4964,7 +4964,7 @@ class Purchase_model extends App_Model
                     'description' => $description,
                     'qty' => $qty,
                     'rate' => $rate,
-                    'tax_id' => $tax_id,
+                    'total_tax' => $tax_id,
                     'amount_after_tax' => $amount_after_tax,
                     'rel_id' => $insert_id,
                     'rel_type' => 'pur_invoice',
@@ -5068,7 +5068,7 @@ class Purchase_model extends App_Model
                         'description' => isset($value[1]) ? $value[1] : '',
                         'qty' => isset($value[2]) ? $value[2] : 1,
                         'rate' => isset($value[3]) ? $value[3] : 0,
-                        'tax_id' => isset($value[4]) ? $value[4] : '',
+                        'total_tax' => isset($value[4]) ? $value[4] : '',
                         'amount_after_tax' => isset($value[5]) ? $value[5] : 0,
                         'rel_id' => $id,
                         'rel_type' => 'pur_invoice',
@@ -5163,7 +5163,7 @@ class Purchase_model extends App_Model
      * @return     array  The pur invoice detail.
      */
     public function get_pur_invoice_detail($id){
-        $items = $this->db->query('SELECT id, rel_id, item_code, description, qty, rate, (qty * rate) as subtotal, tax_id, amount_after_tax FROM ' . db_prefix() . "itemable WHERE rel_id = " . $id . " AND rel_type = 'pur_invoice' ORDER BY item_order ASC")->result_array();
+        $items = $this->db->query('SELECT id, rel_id, item_code, description, qty, rate, (qty * rate) as subtotal, total_tax, amount_after_tax FROM ' . db_prefix() . "itemable WHERE rel_id = " . $id . " AND rel_type = 'pur_invoice' ORDER BY item_order ASC")->result_array();
         return $items;
     }
 
