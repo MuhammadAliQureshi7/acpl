@@ -53,7 +53,7 @@ if(count($pur_invoice_items)>0){
         $total_tax_sum += $row_tax;
         $tblhtml .= '<tr>
             <td align="center">' . $i++ . '</td>
-            <td align="left">' . $item['description'] . '</td>
+            <td align="left">' . (isset($item['item_commodity_code']) && $item['item_commodity_code'] != '' ? '[' . $item['item_commodity_code'] . '] ' : (isset($item['item_code']) && $item['item_code'] != '' ? '[' . $item['item_code'] . '] ' : '')) . $item['description'] . '</td>
             <td align="right">' . $item['qty'] . '</td>
             <td align="right">' . app_format_money($item['rate'], '') . '</td>
             <td align="right">' . app_format_money($subtotal, '') . '</td>

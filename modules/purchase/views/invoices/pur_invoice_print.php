@@ -52,7 +52,7 @@ th{background-color:#f0f0f0;font-weight:bold;}
     $total_tax += floatval($item['tax_id']); ?>
   <tr>
     <td><?php echo $i++; ?></td>
-    <td><?php echo html_entity_decode($item['description']); ?></td>
+    <td><?php echo html_entity_decode((isset($item['item_commodity_code']) && $item['item_commodity_code'] != '' ? '['.$item['item_commodity_code'].'] ' : (isset($item['item_code']) && $item['item_code'] != '' ? '['.$item['item_code'].'] ' : '')) . $item['description']); ?></td>
     <td class="text-right"><?php echo html_entity_decode($item['qty']); ?></td>
     <td class="text-right"><?php echo app_format_money($item['rate'], ''); ?></td>
     <td class="text-right"><?php echo app_format_money($subtotal, ''); ?></td>

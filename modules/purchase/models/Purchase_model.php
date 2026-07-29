@@ -5163,7 +5163,7 @@ class Purchase_model extends App_Model
      * @return     array  The pur invoice detail.
      */
     public function get_pur_invoice_detail($id){
-        $items = $this->db->query('SELECT id, rel_id, item_code, description, qty, rate, (qty * rate) as subtotal, total_tax, amount_after_tax FROM ' . db_prefix() . "itemable WHERE rel_id = " . $id . " AND rel_type = 'pur_invoice' ORDER BY item_order ASC")->result_array();
+        $items = $this->db->query('SELECT i.id, i.rel_id, i.item_code, i.description, i.qty, i.rate, (i.qty * i.rate) as subtotal, i.total_tax, i.amount_after_tax, it.commodity_code as item_commodity_code FROM ' . db_prefix() . "itemable i LEFT JOIN " . db_prefix() . "items it ON i.item_code = it.id WHERE i.rel_id = " . $id . " AND i.rel_type = 'pur_invoice' ORDER BY i.item_order ASC")->result_array();
         return $items;
     }
 

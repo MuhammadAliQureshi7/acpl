@@ -55,8 +55,15 @@ class App_items_table extends App_items_table_template
              * Item description
              */
             if (!empty($item['description'])) {
+                $code = '';
+                if(isset($item['item_code']) && $item['item_code'] != ''){
+                    $CI = &get_instance();
+                    $CI->db->where('id', $item['item_code']);
+                    $item_row = $CI->db->get(db_prefix() . 'items')->row();
+                    $code = ($item_row && isset($item_row->commodity_code)) ? '[' . $item_row->commodity_code . '] ' : '[' . $item['item_code'] . '] ';
+                }
                 $itemHTML .= '<span style="font-size:' . $this->get_pdf_font_size() . 'px;"><strong>'
-                . $this->period_merge_field($item['description'])
+                . $code . $this->period_merge_field($item['description'])
                 . '</strong></span>';
 
                 if (!empty($item['long_description'])) {
