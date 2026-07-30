@@ -81,72 +81,22 @@ $(function() {
         };
     }
 
-    // Post-process each new row: reorder columns, replace tax dropdown, add serials name, load serials
-    var __add_item_to_table = window.add_item_to_table;
-    window.add_item_to_table = function(data, itemid, merge_invoice, bill_expense) {
-        var itemCode = (data && data.item_code) || '';
-        __add_item_to_table(data, itemid, merge_invoice, bill_expense);
-        var watcher = setInterval(function() {
-            var lastRow = $('table.items tbody tr.item:last');
-            if(lastRow.length && lastRow.find('td.amount').length && lastRow.find('td.taxrate').length) {
-                // Move amount before taxrate
-                if(!lastRow.data('reordered')) {
-                    lastRow.find('td.amount').insertBefore(lastRow.find('td.taxrate'));
-                    lastRow.data('reordered', true);
-                }
-                // Add hidden item_code
-                if(itemCode && !lastRow.find('input[name*="[item_code]"]').length) {
-                    lastRow.find('td.dragger').append('<input type="hidden" name="newitems[' + lastAddedItemKey + '][item_code]" value="' + itemCode + '">');
-                }
-                // Replace tax dropdown with number input
-                var $taxTd = lastRow.find('td.taxrate');
-                if($taxTd.length && !$taxTd.find('input.tax-input').length) {
-                    var selectedTax = 0;
-                    $taxTd.find('option:selected').each(function() {
-                        selectedTax += parseFloat($(this).data('taxrate')) || 0;
-                    });
-                    var qty = parseFloat(lastRow.find('[data-quantity]').val()) || 1;
-                    var rate = parseFloat(lastRow.find('td.rate input').val()) || 0;
-                    var subtotal = qty * rate;
-                    $taxTd.html('<input type="number" class="form-control tax-input" min="0" step="0.01" name="newitems[' + lastAddedItemKey + '][total_tax]" value="' + selectedTax + '">');
-                    // Update amount_after_tax
-                    var $amtAfter = lastRow.find('td.amount_after_tax');
-                    if($amtAfter.length) {
-                        $amtAfter.html(format_money(subtotal + selectedTax, true));
-                    }
-                }
-                // Add name to serials-select
-                var $serialSel = lastRow.find('select.serials-select');
-                if($serialSel.length && !$serialSel.attr('name')) {
-                    $serialSel.attr('name', 'newitems[' + lastAddedItemKey + '][serials][]');
-                    $serialSel.selectpicker('refresh');
-                }
-                // Load serials
-                if(itemCode) {
-                    if($serialSel.length && !$serialSel.find('option').length) {
-                        $.get(admin_url + 'purchase/get_available_serials/' + itemCode).done(function(resp) {
-                            resp = JSON.parse(resp);
-                            if(resp.serials && resp.serials.length > 0) {
-                                var opts = '';
-                                resp.serials.forEach(function(s) {
-                                    opts += '<option value="' + s.id + '">' + s.serial_number + '</option>';
-                                });
-                                $serialSel.html(opts);
-                                $serialSel.selectpicker('refresh');
-                            }
-                        });
-                    }
-                }
-                calculate_total();
-                clearInterval(watcher);
-            }
-        }, 100);
-    };
-
     // Auto-add item on select
     $('#item_select').on('change', function() {
         var item_id = $(this).val();
         if(item_id != ''){
+            // Prevent duplicates
+            var dup = false;
+            $('table.items tbody tr.item').each(function() {
+                if($(this).find('td.dragger input[name*="[item_code]"]').val() == item_id) { dup = true; return false; }
+                if($(this).find('input[name*="[itemid]"]').val() == item_id) { dup = true; return false; }
+            });
+            if(dup) {
+                alert_float('warning', 'Item already added');
+                $('#item_select').val('');
+                $('#item_select').selectpicker('refresh');
+                return;
+            }
             $.post(admin_url + 'purchase/items_change/'+item_id).done(function(response) {
                 response = JSON.parse(response);
                 var item = response.value;

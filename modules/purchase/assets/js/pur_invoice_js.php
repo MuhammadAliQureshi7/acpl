@@ -77,6 +77,17 @@ $('#item_select').on('change', function() {
   "use strict";
   var item_id = $(this).val();
   if(item_id != ''){
+    // Check for duplicate
+    var exists = false;
+    $('table.items tbody tr.item input[name*="[item_code]"]').each(function() {
+      if($(this).val() == item_id) { exists = true; return false; }
+    });
+    if(exists) {
+      alert_float('warning', 'Item already added');
+      $('#item_select').val('');
+      $('#item_select').selectpicker('refresh');
+      return;
+    }
     $.post(admin_url + 'purchase/items_change/'+item_id).done(function(response) {
       response = JSON.parse(response);
       var item = response.value;

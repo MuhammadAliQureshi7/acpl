@@ -3203,6 +3203,12 @@ class Warehouse_model extends App_Model {
 		if(isset($data['edit_approval'])){
 			unset($data['edit_approval']);
 		}
+		if(isset($data['total_tax_money'])){
+			 unset($data['total_tax_money']);
+		}
+		if(isset($data['total_tax'])){
+			 unset($data['total_tax']);
+		}
 
 		if(isset($data['save_and_send_request'])){
 			$save_and_send_request = $data['save_and_send_request'];
@@ -3247,39 +3253,15 @@ class Warehouse_model extends App_Model {
 				$goods_delivery['expiry_date'] = null;
 				$goods_delivery['lot_number'] = null;
 
-				$tax_money = 0;
-				$tax_rate_value = 0;
-				$tax_rate = null;
-				$tax_id = null;
-				$tax_name = null;
-				if(isset($goods_delivery['tax_select'])){
-					$tax_rate_data = $this->wh_get_tax_rate($goods_delivery['tax_select']);
-					$tax_rate_value = $tax_rate_data['tax_rate'];
-					$tax_rate = $tax_rate_data['tax_rate_str'];
-					$tax_id = $tax_rate_data['tax_id_str'];
-					$tax_name = $tax_rate_data['tax_name_str'];
-				}
-
-				if((float)$tax_rate_value != 0){
-					$tax_money = (float)$goods_delivery['unit_price'] * (float)$goods_delivery['quantities'] * (float)$tax_rate_value / 100;
-					$total_money = (float)$goods_delivery['unit_price'] * (float)$goods_delivery['quantities'] + (float)$tax_money;
-					$amount = (float)$goods_delivery['unit_price'] * (float)$goods_delivery['quantities'] + (float)$tax_money;
-				}else{
-					$total_money = (float)$goods_delivery['unit_price'] * (float)$goods_delivery['quantities'];
-					$amount = (float)$goods_delivery['unit_price'] * (float)$goods_delivery['quantities'];
-				}
-
+				$row_tax = isset($goods_delivery['total_tax']) ? floatval($goods_delivery['total_tax']) : 0;
 				$sub_total = (float)$goods_delivery['unit_price'] * (float)$goods_delivery['quantities'];
+				$total_money = $sub_total + $row_tax;
 
-				$goods_delivery['tax_id'] = $tax_id;
 				$goods_delivery['total_money'] = $total_money;
-				$goods_delivery['tax_rate'] = $tax_rate;
 				$goods_delivery['sub_total'] = $sub_total;
-				$goods_delivery['tax_name'] = $tax_name;
 
 				unset($goods_delivery['order']);
 				unset($goods_delivery['id']);
-				unset($goods_delivery['tax_select']);
 				unset($goods_delivery['unit_name']);
 
 				$this->db->insert(db_prefix() . 'goods_delivery_detail', $goods_delivery);
@@ -8502,6 +8484,7 @@ class Warehouse_model extends App_Model {
     					$tax_name = null;
     					$tax_id = null;
     					$tax_rate_value = 0;
+						$total_tax = $value['total_tax'];
 
     					$quantities =  round(((float)$value['qty'] - (float)$value['wh_delivered_quantity']) + 0, 5);
     					$unit_price = $value['rate'] + 0;
@@ -8553,23 +8536,21 @@ class Warehouse_model extends App_Model {
     					$commodity_name = wh_get_item_variatiom($commodity_code);
     					$total_money = 0;
     					$total_after_discount = 0;
-    					$guarantee_period = '';
+    					$guarantee_period = '';						
 
-    					if((float)$tax_rate_value != 0){
-    						$tax_money = (float)$unit_price * (float)$quantities * (float)$tax_rate_value / 100;
-    						$total_money = (float)$unit_price * (float)$quantities + (float)$tax_money;
-    						$amount = (float)$unit_price * (float)$quantities + (float)$tax_money;
-    						$total_after_discount = (float)$unit_price * (float)$quantities + (float)$tax_money;
-    					}else{
-    						$total_money = (float)$unit_price * (float)$quantities;
-    						$amount = (float)$unit_price * (float)$quantities;
-    						$total_after_discount = (float)$unit_price * (float)$quantities;
-    					}
+    					$amount = (float)$unit_price * (float)$quantities;
+    					$total_money = $amount + $total_tax;
+    					$total_after_discount = $total_money;
+						
 
     					$sub_total = (float)$unit_price * (float)$quantities;
 
     					if((float)$quantities > 0){
-    						$goods_delivery_row_template .= $this->warehouse_model->create_goods_delivery_row_template([], 'newitems[' . $index . ']', $commodity_name, '', '', $quantities, $unit_name, $unit_price, $taxname, $commodity_code, $unit_id , $tax_rate, $total_money, '','', $total_after_discount, $guarantee_period, $expiry_date, $lot_number, $note, $sub_total, $tax_name, $tax_id, 'undefined', true);
+    						$row_html = $this->warehouse_model->create_goods_delivery_row_template([], 'newitems[' . $index . ']', $commodity_name, '', '', $quantities, $unit_name, $unit_price, $taxname, $total_tax, $commodity_code, $unit_id , $tax_rate, $total_money, '','', $total_after_discount, $guarantee_period, $expiry_date, $lot_number, $note, $sub_total, $tax_name, $tax_id, 'undefined', true);
+    						$subtotal_amt = (float)$unit_price * (float)$quantities;
+    						$row_html = str_replace('[total_tax]" value="0"', '[total_tax]" value="' . $total_tax . '"', $row_html);
+    						$row_html = str_replace('class="label_total_money" align="right">' . app_format_number($subtotal_amt) . '</td>', 'class="label_total_money" align="right">' . app_format_money($total_money, '') . '</td>', $row_html);
+    						$goods_delivery_row_template .= $row_html;
     					}
 
     				}
@@ -14809,7 +14790,7 @@ class Warehouse_model extends App_Model {
      * @param  boolean $is_edit              
      * @return [type]                        
      */
-    public function create_goods_delivery_row_template($warehouse_data = [], $name = '', $commodity_name = '', $warehouse_id = '', $available_quantity = '', $quantities = '', $unit_name = '', $unit_price = '', $taxname = '',  $commodity_code = '', $unit_id = '', $tax_rate = '', $total_money = '', $discount = '', $discount_money = '', $total_after_discount = '', $guarantee_period = '', $expiry_date = '', $lot_number = '', $note = '',  $sub_total = '', $tax_name = '', $tax_id = '', $item_key = '',$is_edit = false, $is_purchase_order = false) {
+    public function create_goods_delivery_row_template($warehouse_data = [], $name = '', $commodity_name = '', $warehouse_id = '', $available_quantity = '', $quantities = '', $unit_name = '', $unit_price = '', $taxname = '', $total_tax = '', $commodity_code = '', $unit_id = '', $tax_rate = '', $total_money = '', $discount = '', $discount_money = '', $total_after_discount = '', $guarantee_period = '', $expiry_date = '', $lot_number = '', $note = '',  $sub_total = '', $tax_name = '', $tax_id = '', $item_key = '',$is_edit = false, $is_purchase_order = false) {
 		
 		$this->load->model('invoice_items_model');
 		$row = '';
@@ -14830,6 +14811,7 @@ class Warehouse_model extends App_Model {
 		$name_note = 'note';
 		$name_tax_rate = 'tax_rate';
 		$name_tax_name = 'tax_name';
+		$name_total_tax = 'total_tax';
 		$array_attr = [];
 		$array_attr_payment = ['data-payment' => 'invoice'];
 		$name_sub_total = 'sub_total';
@@ -14849,7 +14831,7 @@ class Warehouse_model extends App_Model {
 		}
 
 		if ($name == '') {
-			$row .= '<tr class="main">
+			$row .= '<tr class="main hide">
                   <td></td>';
 			$vehicles = [];
 			$array_attr = ['placeholder' => _l('unit_price')];
@@ -14878,6 +14860,7 @@ class Warehouse_model extends App_Model {
 			$name_note = $name . '[note]';
 			$name_tax_rate = $name . '[tax_rate]';
 			$name_tax_name = $name .'[tax_name]';
+			$name_total_tax = $name .'[total_tax]';
 			$name_sub_total = $name .'[sub_total]';
 			$name_discount = $name .'[discount]';
 			$name_discount_money = $name .'[discount_money]';
@@ -14894,7 +14877,7 @@ class Warehouse_model extends App_Model {
 
 			$array_rate_attr = ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0' , 'step' => 'any', 'data-amount' => 'invoice', 'placeholder' => _l('rate')];
 			$array_discount_attr = ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0' , 'step' => 'any', 'data-amount' => 'invoice', 'placeholder' => _l('discount')];
-
+			$array_total_tax_attr = ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0' , 'step' => 'any', 'data-amount' => 'invoice', 'placeholder' => _l('tax')];
 
 			$manual             = false;
 
@@ -14944,18 +14927,12 @@ class Warehouse_model extends App_Model {
 		 '</td>';
 
 		$row .= '<td class="rate">' . render_input($name_unit_price, '', $unit_price, 'number', $array_rate_attr) . '</td>';
-		$row .= '<td class="taxrate">' . $this->get_taxes_dropdown_template($name_tax_id_select, $invoice_item_taxes, 'invoice', $item_key, true, $manual) . '</td>';
-		// $row .= '<td>' . render_input($name_lot_number, '', $lot_number, 'text', ['placeholder' => _l('lot_number')]) . '</td>';
-		// $row .= '<td>' . render_date_input($name_expiry_date, '', $expiry_date, ['placeholder' => _l('expiry_date')]) . '</td>';
 		$row .= '<td class="amount" align="right">' . $amount . '</td>';
-		$row .= '<td class="discount">' . render_input($name_discount, '', $discount, 'number', $array_discount_attr) . '</td>';
-		$row .= '<td class="label_discount_money" align="right">' . $amount . '</td>';
-		$row .= '<td class="label_total_after_discount" align="right">' . $amount . '</td>';
+		$row .= '<td class="taxrate">'.render_input($name_total_tax, '', $total_tax, 'number', $array_total_tax_attr,[],'','tax-input') .'</td>';
+		$row .= '<td class="label_total_money" align="right">' . $amount . '</td>';
 
 		$row .= '<td class="hide commodity_code">' . render_input($name_commodity_code, '', $commodity_code, 'text', ['placeholder' => _l('commodity_code')]) . '</td>';
 		$row .= '<td class="hide unit_id">' . render_input($name_unit_id, '', $unit_id, 'text', ['placeholder' => _l('unit_id')]) . '</td>';
-		$row .= '<td class="hide discount_money">' . render_input($name_discount_money, '', $discount_money, 'number', []) . '</td>';
-		$row .= '<td class="hide total_after_discount">' . render_input($name_total_after_discount, '', $total_after_discount, 'number', []) . '</td>';
 
 		if ($name == '') {
 			$row .= '<td><button type="button" onclick="wh_add_item_to_table(\'undefined\',\'undefined\'); return false;" class="btn pull-right btn-info"><i class="fa fa-check"></i></button></td>';

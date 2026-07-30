@@ -343,12 +343,9 @@
                               <th width="10%" align="right" class="available_quantity"><?php echo _l('available_quantity'); ?></th>
                               <th width="10%" align="right" class="qty"><?php echo _l('quantity'); ?></th>
                               <th width="10%" align="right"><?php echo _l('rate'); ?></th>
-                              <th width="12%" align="right"><?php echo _l('invoice_table_tax_heading'); ?></th>
                               <th width="10%" align="right"><?php echo _l('subtotal'); ?></th>
-                              <th width="7%" align="right"><?php echo _l('discount'); ?></th>
-                              <th width="10%" align="right"><?php echo _l('discount(money)'); ?></th>
+                              <th width="10%" align="right"><?php echo _l('total_tax'); ?></th>
                               <th width="10%" align="right"><?php echo _l('total_money'); ?></th>
-                              <!-- <th width="10%" align="right"><?php echo _l('invoice_table_amount_heading'); ?></th> -->
 
                               <th align="center"><i class="fa fa-cog"></i></th>
                             </tr>
@@ -367,10 +364,10 @@
                               <td class="wh-subtotal">
                               </td>
                             </tr>
-                            <tr id="total_discount">
-                              <td><span class="bold"><?php echo _l('total_discount'); ?> :</span>
+                            <tr id="total_tax_row">
+                              <td><span class="bold"><?php echo _l('total_tax'); ?> :</span>
                               </td>
-                              <td class="wh-total_discount">
+                              <td class="wh-total_tax">
                               </td>
                             </tr>
                             

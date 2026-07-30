@@ -3543,6 +3543,59 @@ class warehouse extends AdminController {
      * get invoices fill data
      * @return json 
      */
+    /**
+     * Get invoice items for delivery challan with total_tax
+     */
+    public function get_invoice_items_for_delivery($invoice_id) {
+        $this->load->model('purchase/purchase_model');
+        $items = get_items_by_type('invoice', $invoice_id);
+        $warehouse_data = $this->warehouse_model->get_warehouse();
+        $result = [];
+        $index = 0;
+        foreach($items as $item) {
+            $index++;
+            $row_html = $this->warehouse_model->create_goods_delivery_row_template(
+                $warehouse_data,
+                'newitems[' . $index . ']',
+                $item['description'],
+                '',
+                0,
+                $item['qty'],
+                '',
+                $item['rate'],
+                '',
+                $item['item_code'],
+                '',
+                '',
+                $item['amount_after_tax'] ?? ($item['qty'] * $item['rate']),
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                $index,
+                false,
+                false
+            );
+            // Set total_tax and total_money in the row
+            $total_tax_val = isset($item['total_tax']) && $item['total_tax'] != '' ? floatval($item['total_tax']) : 0;
+            $row_subtotal = $item['qty'] * $item['rate'];
+            $row_total_with_tax = $row_subtotal + $total_tax_val;
+            // Update tax-input value
+            $row_html = str_replace('[total_tax]" value="0"', '[total_tax]" value="' . $total_tax_val . '"', $row_html);
+            // Update label_total_money display to include tax
+            $row_html = str_replace('class="label_total_money" align="right">' . app_format_number($row_subtotal) . '</td>', 'class="label_total_money" align="right">' . app_format_money($row_total_with_tax, '') . '</td>', $row_html);
+            $result[] = $row_html;
+        }
+        echo json_encode(['items' => $result]);
+        die;
+    }
+
     public function get_invoices_fill_data()
     {
     	$this->load->model('clients_model');

@@ -202,6 +202,25 @@ function wh_add_item_to_table(data, itemid) {
   return false;
 }
 
+// Load items from selected sale invoice
+function invoice_change(el) {
+  "use strict";
+  var invoice_id = $(el).val();
+  if(invoice_id != ''){
+    $.get(admin_url + 'warehouse/get_invoice_items_for_delivery/' + invoice_id).done(function(response) {
+      response = JSON.parse(response);
+      if(response.items && response.items.length > 0) {
+        $('.invoice-item table.invoice-items-table.items tbody').html('');
+        response.items.forEach(function(row) {
+          $('.invoice-item table.invoice-items-table.items tbody').append(row);
+        });
+        init_selectpicker();
+        wh_calculate_total();
+      }
+    });
+  }
+}
+
 function wh_get_item_preview_values() {
   "use strict";
 
@@ -290,152 +309,46 @@ function wh_reorder_items(parent) {
     i++;
   });
 }
-
 function wh_calculate_total(){
   "use strict";
   if ($('body').hasClass('no-calculate-total')) {
     return false;
   }
 
-  var calculated_tax,
-    taxrate,
-    item_taxes,
-    row,
-    _amount,
-    _tax_name,
-    taxes = {},
-    taxes_rows = [],
-    subtotal = 0,
-    total = 0,
+  var subtotal = 0,
+    total_tax_sum = 0,
     total_money = 0,
-    total_tax_money = 0,
     quantity = 1,
-    total_discount_calculated = 0,
-    item_discount_percent = 0,
-    item_discount = 0,
-    item_total_payment,
     rows = $('.table.has-calculations tbody tr.item'),
-    subtotal_area = $('#subtotal'),
-    discount_area = $('#discount_area'),
-    adjustment = $('input[name="adjustment"]').val(),
-    // discount_percent = $('input[name="discount_percent"]').val(),
-    discount_percent = 'before_tax',
-    discount_fixed = $('input[name="discount_total"]').val(),
-    discount_total_type = $('.discount-total-type.selected'),
-    discount_type = $('select[name="discount_type"]').val(),
-    additional_discount = $('input[name="additional_discount"]').val();
+    adjustment = $('input[name="adjustment"]').val();
 
   $('.wh-tax-area').remove();
 
     $.each(rows, function () {
-
-    var item_tax = 0,
-        item_amount  = 0;
-
     quantity = $(this).find('[data-quantity]').val();
     if (quantity === '') {
       quantity = 1;
       $(this).find('[data-quantity]').val(1);
     }
-    item_discount_percent = $(this).find('td.discount input').val();
 
-    if (isNaN(item_discount_percent) || item_discount_percent == '') {
-      item_discount_percent = 0;
-    }
-
-    _amount = accounting.toFixed($(this).find('td.rate input').val() * quantity, app.options.decimal_places);
-    item_amount = _amount;
+    var _amount = accounting.toFixed($(this).find('td.rate input').val() * quantity, app.options.decimal_places);
     _amount = parseFloat(_amount);
+    var tax_val = parseFloat($(this).find('input.tax-input').val()) || 0;
+    var row_total = _amount + tax_val;
 
     $(this).find('td.amount').html(format_money(_amount));
+    $(this).find('td.label_total_money').html(format_money(row_total));
 
     subtotal += _amount;
-    row = $(this);
-    item_taxes = $(this).find('select.taxes').val();
-
-    if (item_taxes) {
-      $.each(item_taxes, function (i, taxname) {
-        taxrate = row.find('select.taxes [value="' + taxname + '"]').data('taxrate');
-        calculated_tax = (_amount / 100 * taxrate);
-        item_tax += calculated_tax;
-        if (!taxes.hasOwnProperty(taxname)) {
-          if (taxrate != 0) {
-            _tax_name = taxname.split('|');
-            var tax_row = '<tr class="wh-tax-area"><td>' + _tax_name[0] + '(' + taxrate + '%)</td><td id="tax_id_' + slugify(taxname) + '"></td></tr>';
-            $(subtotal_area).after(tax_row);
-            taxes[taxname] = calculated_tax;
-          }
-        } else {
-                    // Increment total from this tax
-                    taxes[taxname] = taxes[taxname] += calculated_tax;
-                }
-            });
-    }
-      //Discount of item
-      item_discount = (parseFloat(item_amount) + parseFloat(item_tax) ) * parseFloat(item_discount_percent) / 100;
-      item_total_payment = parseFloat(item_amount) + parseFloat(item_tax) - parseFloat(item_discount);
-
-      // Append value to item
-      total_discount_calculated += item_discount;
-      $(this).find('td.discount_money input').val(item_discount);
-      $(this).find('td.total_after_discount input').val(item_total_payment);
-
-      $(this).find('td.label_discount_money').html(format_money(item_discount));
-      $(this).find('td.label_total_after_discount').html(format_money(item_total_payment));
-
+    total_tax_sum += tax_val;
+    total_money += row_total;
   });
 
-  // Discount by percent
-  if ((discount_percent !== '' && discount_percent != 0) && discount_type == 'before_tax' && discount_total_type.hasClass('discount-type-percent')) {
-    total_discount_calculated = (subtotal * discount_percent) / 100;
-  } else if ((discount_fixed !== '' && discount_fixed != 0) && discount_type == 'before_tax' && discount_total_type.hasClass('discount-type-fixed')) {
-    total_discount_calculated = discount_fixed;
-  }
-
-  $.each(taxes, function (taxname, total_tax) {
-    if ((discount_percent !== '' && discount_percent != 0) && discount_type == 'before_tax' && discount_total_type.hasClass('discount-type-percent')) {
-      total_tax_calculated = (total_tax * discount_percent) / 100;
-      total_tax = (total_tax - total_tax_calculated);
-    } else if ((discount_fixed !== '' && discount_fixed != 0) && discount_type == 'before_tax' && discount_total_type.hasClass('discount-type-fixed')) {
-      var t = (discount_fixed / subtotal) * 100;
-      total_tax = (total_tax - (total_tax * t) / 100);
-    }
-
-    total += total_tax;
-    total_tax_money += total_tax;
-    total_tax = format_money(total_tax);
-    $('#tax_id_' + slugify(taxname)).html(total_tax);
-  });
-
-
-  total = (total + subtotal);
-  total_money = total;
-  // Discount by percent
-  if ((discount_percent !== '' && discount_percent != 0) && discount_type == 'after_tax' && discount_total_type.hasClass('discount-type-percent')) {
-    total_discount_calculated = (total * discount_percent) / 100;
-  } else if ((discount_fixed !== '' && discount_fixed != 0) && discount_type == 'after_tax' && discount_total_type.hasClass('discount-type-fixed')) {
-    total_discount_calculated = discount_fixed;
-  }
-
-  total = total - total_discount_calculated - parseFloat(additional_discount);
-  adjustment = parseFloat(adjustment);
-
-  // Check if adjustment not empty
-  if (!isNaN(adjustment)) {
-    total = total + adjustment;
-  }
-
-  var discount_html = '-' + format_money(parseFloat(total_discount_calculated)+ parseFloat(additional_discount));
-    $('input[name="discount_total"]').val(accounting.toFixed(total_discount_calculated, app.options.decimal_places));
-    
-  // Append, format to html and display
-  $('.wh-total_discount').html(discount_html + hidden_input('total_discount', accounting.toFixed(total_discount_calculated, app.options.decimal_places))  );
-  $('.adjustment').html(format_money(adjustment));
-  $('.wh-subtotal').html(format_money(subtotal) + hidden_input('sub_total', accounting.toFixed(subtotal, app.options.decimal_places)) + hidden_input('total_money', accounting.toFixed(total_money, app.options.decimal_places)));
-  $('.wh-total').html(format_money(total) + hidden_input('after_discount', accounting.toFixed(total, app.options.decimal_places)));
+  $('.wh-subtotal').html(format_money(subtotal) + hidden_input('sub_total', accounting.toFixed(subtotal, app.options.decimal_places)));
+  $('.wh-total_tax').html(format_money(total_tax_sum) + hidden_input('total_tax_money', accounting.toFixed(total_tax_sum, app.options.decimal_places)));
+  $('.wh-total').html(format_money(total_money) + hidden_input('after_discount', accounting.toFixed(total_money, app.options.decimal_places)));
 
   $(document).trigger('wh-receipt-note-total-calculated');
-
 }
 
 function get_available_quantity(commodity_code_name, from_stock_name, available_quantity_name){
