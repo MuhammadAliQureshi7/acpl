@@ -659,6 +659,7 @@
                                 $table_row .= form_hidden('' . $items_indicator . '[' . $i . '][itemid]', $item['id']);
                                 $amount = $item['rate'] * $item['qty'];
                                 $amount = app_format_number($amount);
+                                $amount_with_tax = $amount + $item['total_tax'];
                                 // order input
                                 $table_row .= '<input type="hidden" class="order" name="' . $items_indicator . '[' . $i . '][order]">';
                                 $table_row .= '</td>';
@@ -680,15 +681,15 @@
                                 $table_row .= '</td>';
                                 $table_row .= '<td class="rate"><input type="number" step="0.01" data-toggle="tooltip" title="' . _l('numbers_not_formatted_while_editing') . '" onblur="calculate_total();" onchange="calculate_total();" name="' . $items_indicator . '[' . $i . '][rate]" value="' . $item['rate'] . '" class="form-control"></td>';
                                 $table_row .= '<td class="amount" align="right">' . $amount . '</td>';
-                                $tax_val = 0;
-                                if(isset($item['taxname']) && is_array($item['taxname'])) {
-                                    foreach($item['taxname'] as $tn) {
-                                        $parts = explode('|', $tn);
-                                        if(isset($parts[1])) $tax_val += floatval($parts[1]);
-                                    }
-                                }
-                                $table_row .= '<td class="taxrate"><input type="number" class="form-control tax-input" min="0" step="0.01" name="' . $items_indicator . '[' . $i . '][tax_percent]" value="' . $tax_val . '"></td>';
-                                $table_row .= '<td class="amount" align="right">' . $amount . '</td>';
+                                // $tax_val = 0;
+                                // if(isset($item['taxname']) && is_array($item['taxname'])) {
+                                //     foreach($item['taxname'] as $tn) {
+                                //         $parts = explode('|', $tn);
+                                //         if(isset($parts[1])) $tax_val += floatval($parts[1]);
+                                //     }
+                                // }
+                                $table_row .= '<td class="taxrate"><input type="number" class="form-control tax-input" min="0" step="0.01" name="' . $items_indicator . '[' . $i . '][tax_percent]" value="' . $item['total_tax'] . '"></td>';
+                                $table_row .= '<td class="amount" align="right">' . $amount_with_tax . '</td>';
                                 $table_row .= '<td><a href="#" class="btn btn-danger pull-left" onclick="delete_item(this,' . $item['id'] . '); return false;"><i class="fa fa-times"></i></a></td>';
                                 if (isset($item['task_id'])) {
                                     if (!is_array($item['task_id'])) {

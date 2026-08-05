@@ -367,7 +367,7 @@ class Invoices extends AdminController
             $data['billable_tasks'] = [];
         } else {
             $invoice = $this->invoices_model->get($id);
-
+            // dd($invoice);
             if (!$invoice || !user_can_view_invoice($id)) {
                 blank_page(_l('invoice_not_found'));
             }

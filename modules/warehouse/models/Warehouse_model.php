@@ -2711,266 +2711,128 @@ class Warehouse_model extends App_Model {
 	 * @return html
 	 */
 	public function get_stock_import_pdf_html($goods_receipt_id) {
-		$this->load->model('currencies_model');
-		$base_currency = $this->currencies_model->get_base_currency();
-
-		// get_goods_receipt
 		$goods_receipt = $this->get_goods_receipt($goods_receipt_id);
-		// get_goods_receipt_detail
 		$goods_receipt_detail = $this->get_goods_receipt_detail($goods_receipt_id);
-		$company_name = get_option('invoice_company_name');
-		$address = get_option('invoice_company_address');
 
-		$tax_data = $this->get_html_tax_receip($goods_receipt_id);
+		$company_name    = get_option('invoice_company_name');
+		$company_address = get_option('invoice_company_address');
 
-		$day = date('d', strtotime($goods_receipt->date_add));
-		$month = date('m', strtotime($goods_receipt->date_add));
-		$year = date('Y', strtotime($goods_receipt->date_add));
-		$warehouse_lotnumber_bottom_infor_option = get_warehouse_option('goods_delivery_pdf_display_warehouse_lotnumber_bottom_infor');
+		$supplier_no      = '';
+		$supplier_name    = '';
+		$supplier_address = '';
+
+		if (get_status_modules_wh('purchase') && is_numeric($goods_receipt->supplier_code) && $goods_receipt->supplier_code != 0) {
+			$supplier = $this->db->get_where(db_prefix() . 'pur_vendor', ['userid' => $goods_receipt->supplier_code])->row();
+			if ($supplier) {
+				$supplier_no      = (isset($supplier->vendor_code) && $supplier->vendor_code != '' ? $supplier->vendor_code : $supplier->userid);
+				$supplier_name    = $supplier->company;
+				$supplier_address = trim(implode(', ', array_filter([$supplier->address, $supplier->city, $supplier->state])));
+			}
+		}
+		if ($supplier_name == '') {
+			$supplier_name = $goods_receipt->supplier_name;
+		}
+
+		$invoice_number = '';
+		$invoice_date   = '';
+
+		if (isset($goods_receipt->pur_invoice_id) && is_numeric($goods_receipt->pur_invoice_id) && $goods_receipt->pur_invoice_id != 0) {
+			$this->load->model('purchase/purchase_model');
+			$pur_invoice = $this->purchase_model->get_pur_invoice($goods_receipt->pur_invoice_id);
+			if ($pur_invoice) {
+				$invoice_number = $pur_invoice->invoice_number;
+				$invoice_date   = $pur_invoice->invoice_date;
+			}
+		}
+		if ($invoice_number == '') {
+			$invoice_number = (isset($goods_receipt->invoice_no) ? $goods_receipt->invoice_no : '');
+		}
+		if ($invoice_date == '') {
+			$invoice_date = $goods_receipt->date_add;
+		}
 
 		$html = '';
-		$html .= '<table class="table">
-		<tbody>
-		<tr>
-		<td rowspan="2" width="50%" class="text-left">'.pdf_logo_url().'</td>
-		<td class="text_right_weight "><h3>' . mb_strtoupper(_l('receiving')) . '</h3></td>
-		</tr>
 
-		<tr>
-		<td class="text_right">#'.$goods_receipt->goods_receipt_code.'</td>
-		</tr>
-		</tbody>
-		</table>
-		<br><br><br>
-		';	
+		$logo = pdf_logo_url();
+		$html .= '<table width="745" cellspacing="0"><tr>';
+		$html .= '<td width="200" align="left">' . $logo . '</td>';
+		$html .= '</tr><tr>';
+		$html .= '<td width="545" align="left"><div style="font-size:16px;font-weight:bold;">' . html_entity_decode($company_name) . '</div></td>';
+		$html .= '</tr>';
+		if ($company_address != '') {
+			$html .= '<tr><td width="545" align="left"><div style="font-size:16px;">' . html_entity_decode($company_address) . '</div></td></tr>';
+		}
+		$html .= '</table>';
 
-		//organization_info
-		$organization_info = '<div  class="bill_to_color">';
-		$organization_info .= format_organization_info();
-		$organization_info .= '</div>';
+		$html .= '<br />';
+		$html .= '<div style="text-align:center;font-size:18px;font-weight:bold;">DETAIL SERIAL NO. LIST</div>';
 
-		//get vendor infor
+		$html .= '<br />';
+		$html .= '<table width="745" cellspacing="0" style="font-size:18px;">';
+		$html .= '<tr>';
+		$html .= '<td width="164"><b>Supplier No.</b></td><td width="208">' . htmlspecialchars($supplier_no) . '</td>';
+		$html .= '<td width="164"><b>Invoice Date</b></td><td width="209">' . _d($invoice_date) . '</td>';
+		$html .= '</tr>';
+		$html .= '<tr>';
+		$html .= '<td width="164"><b>Supplier Name</b></td><td width="208">' . htmlspecialchars($supplier_name) . '</td>';
+		$html .= '<td width="164"><b>Invoice Number</b></td><td width="209">' . htmlspecialchars($invoice_number) . '</td>';
+		$html .= '</tr>';
+		$html .= '<tr>';
+		$html .= '<td width="164"><b>Supplier Address</b></td><td width="208">' . htmlspecialchars($supplier_address) . '</td>';
+		$html .= '<td width="164"></td><td width="209"></td>';
+		$html .= '</tr>';
+		$html .= '</table>';
 
-		$customer_name='';
-		if (get_status_modules_wh('purchase') && ($goods_receipt->supplier_code != '') && ($goods_receipt->supplier_code != 0) ){
-			$this->load->model('purchase/purchase_model');
-			if($goods_receipt){
-				if(is_numeric($goods_receipt->supplier_code)){
+		$html .= '<br />';
+		$html .= '<hr width="100%" color="#999999" size="0.2" />';
 
-					$supplier_value = $this->purchase_model->get_vendor($goods_receipt->supplier_code);
-					if($supplier_value){
-						$customer_name .= $supplier_value->company;
+		$html .= '<table width="745" cellspacing="0" style="font-size:18px;">';
+		$html .= '<tr style="font-weight:bold;text-align:center;">';
+		$html .= '<td width="179">Code</td>';
+		$html .= '<td width="216">Product Name</td>';
+		$html .= '<td width="179">Qty</td>';
+		$html .= '<td width="171">Serial No.</td>';
+		$html .= '</tr>';
+		$html .= '</table>';
+		$html .= '<hr width="100%" color="#000000" size="0.4" />';
 
-						$supplier_value->client = $supplier_value;
-						$supplier_value->clientid = '';
-					}
+		$total_qty = 0;
+		if (count($goods_receipt_detail) > 0) {
+			foreach ($goods_receipt_detail as $receipt_value) {
+				$commodity_code = '';
+				$commodity_name = (isset($receipt_value['commodity_name']) ? $receipt_value['commodity_name'] : '');
+				$serial_no      = (isset($receipt_value['lot_number']) ? $receipt_value['lot_number'] : '');
+				$quantities     = (isset($receipt_value['quantities']) ? $receipt_value['quantities'] : 0);
 
-				}
-
-			}
-
-			// Bill to
-			$bill_to = '<b>' . _l('supplier_name') . '</b>';
-			$bill_to .= '<div class="bill_to_color">';
-			if(isset($supplier_value)){
-				$address = '';
-				$vendor_name = '';
-				$ship_to = '';
-
-				if($supplier_value){
-					$address = $supplier_value->address;
-					if($supplier_value->city != ''){
-						$address  .= ', '.$supplier_value->city;
-					}
-					if($supplier_value->state != ''){
-						$address  .= ', '.$supplier_value->state;
-					}
-					
-					$vendor_name = $supplier_value->company;
-					$ship_to = $supplier_value->shipping_street.'  '.$supplier_value->shipping_city.'  '.$supplier_value->shipping_state;
-					if($supplier_value->shipping_street == '' && $supplier_value->shipping_city == '' && $supplier_value->shipping_state == ''){
-						$ship_to = $address;
+				$item_info = get_commodity_name($receipt_value['commodity_code']);
+				if ($item_info != null) {
+					$commodity_code = $item_info->commodity_code;
+					if ($commodity_name == '') {
+						$commodity_name = $item_info->description;
 					}
 				}
+				if ($commodity_name == '') {
+					$commodity_name = wh_get_item_variatiom($receipt_value['commodity_code']);
+				}
 
-				$bill_to .= '<strong>'.$vendor_name.'</strong><br>';
-				$bill_to .= $address;
-			}else{
-				$bill_to .= wh_get_vendor_company_name($goods_receipt->supplier_code);
+				$total_qty += (float) $quantities;
+
+				$html .= '<table width="745" cellspacing="0" style="font-size:18px;"><tr>';
+				$html .= '<td width="179" align="center">' . htmlspecialchars($commodity_code) . '</td>';
+				$html .= '<td width="216">' . htmlspecialchars($commodity_name) . '</td>';
+				$html .= '<td width="179" align="center">' . $quantities . '</td>';
+				$html .= '<td width="171" align="center">' . htmlspecialchars($serial_no) . '</td>';
+				$html .= '</tr></table>';
+				$html .= '<hr width="100%" color="#000000" size="0.2" />';
 			}
-			$bill_to .= '</div>';
-
-		}else{
-			// Bill to
-			$bill_to = '<b>' . _l('supplier_name') . '</b>';
-			$bill_to .= '<div class="bill_to_color">';
-			$bill_to .= $goods_receipt->supplier_name;
-			$bill_to .= '</div>';
 		}
 
-		//invoice_data_date
-		$invoice_date = '<br /><b>' . _l('invoice_data_date') . ' ' . _d($goods_receipt->date_add) . '</b><br />';
-
-		$html .= '<table class="table">
-		<tbody>
-		<tr>
-		<td rowspan="2" width="50%" class="text-left">'.$organization_info.'</td>
-		<td rowspan="2" width="50%" class="text_right">'.$bill_to.'</td>
-		</tr>
-		</tbody>
-		</table>
-		<br><br>
-		<br><br>
-		';
-
-		$html .= '<table class="table">
-		<tbody>
-		<tr>
-		<td rowspan="2" width="50%" class="text-left"></td>
-		<td rowspan="2" width="50%" class="text_right">'.$invoice_date.'</td>
-		</tr>
-		</tbody>
-		</table>
-		<br><br><br>
-		<br><br><br>
-		';
-
-		$html .= '<table class="table">
-		<tbody>
-
-		<tr>
-		<th class="thead-dark-ip">'. _l('_order').'</th>
-		<th class="thead-dark-ip">' . _l('commodity_code') . '</th>
-		<th class="thead-dark-ip">' . _l('warehouse_name') . '</th>
-		<th class="thead-dark-ip">' . _l('unit_name') . '</th>
-		<th class="thead-dark-ip">' . _l('quantity') . '</th>
-		<th class="thead-dark-ip">' . _l('unit_price') . '</th>
-		<th class="thead-dark-ip">' . _l('total_money') . '</th>
-		<th class="thead-dark-ip">' . _l('tax_money') . '</th>
-		<th class="thead-dark-ip">' . _l('lot_number') . '</th>
-		<th class="thead-dark-ip">' . _l('expiry_date') . '</th>
-
-		</tr>';
-		foreach ($goods_receipt_detail as $receipt_key => $receipt_value) {
-
-			$commodity_name = (isset($receipt_value) ? $receipt_value['commodity_name'] : '');
-			$quantities = (isset($receipt_value) ? $receipt_value['quantities'] : '');
-			$unit_price = (isset($receipt_value) ? $receipt_value['unit_price'] : '');
-			$goods_money = (isset($receipt_value) ? $receipt_value['goods_money'] : '');
-
-			$commodity_code = get_commodity_name($receipt_value['commodity_code']) != null ? get_commodity_name($receipt_value['commodity_code'])->commodity_code : ''; 
-
-			$commodity_name = get_commodity_name($receipt_value['commodity_code']) != null ? get_commodity_name($receipt_value['commodity_code'])->description : '';
-
-			$unit_name = get_unit_type($receipt_value['unit_id']) != null ? get_unit_type($receipt_value['unit_id'])->unit_name : '';
-
-			$warehouse_code = get_warehouse_name($receipt_value['warehouse_id']) != null ? get_warehouse_name($receipt_value['warehouse_id'])->warehouse_name : '';
-
-			$tax_money =(isset($receipt_value['tax_money']) ? $receipt_value['tax_money'] : '');
-			$expiry_date =(isset($receipt_value['expiry_date']) ? $receipt_value['expiry_date'] : '');
-			$lot_number =(isset($receipt_value['lot_number']) ? $receipt_value['lot_number'] : '');
-			$commodity_name = $receipt_value['commodity_name'];
-			if(strlen($commodity_name) == 0){
-				$commodity_name = wh_get_item_variatiom($receipt_value['commodity_code']);
-			}
-
-			$key = $receipt_key+1;
-
-			$html .= '<tr>';
-			$html .= '<td class="td_style_r_ep_c"><b>' . $key . '</b></td>
-			<td class="td_style_r_ep_c"><b>' . $commodity_name.'</b></td>
-			<td class="td_style_r_ep_c">' . $warehouse_code . '</td>
-			<td class="td_style_r_ep_c">' . $unit_name . '</td>
-			<td class="td_style_r_ep_c">' . $quantities . '</td>
-			<td class="td_style_r_ep_c">' . app_format_money((float) $unit_price, '') . '</td>
-			<td class="td_style_r_ep_c">' . app_format_money((float) $goods_money, '') . '</td>
-			<td class="td_style_r_ep_c">' . app_format_money((float) $tax_money, '') . '</td>
-			<td class="td_style_r_ep_c">' . $lot_number . '</td>
-			<td class="td_style_r_ep_c">' . _d($expiry_date) . '</td>
-			</tr>';
-		}
-
-		$html .= '</tbody>
-		</table>
-		<br/>
-		';
-
-		$html .=  '<h4>' . _l('note_') . ':</h4>
-		<p>' . $goods_receipt->description . '</p>';
-
-
-		$html .= '<table class="table">
-		<tbody>
-		<tr>
-		<td ></td>
-		<td ></td>
-		<td ></td>
-		<td class="text_left"><b>' . _l('total_goods_money') . '</b></td>
-		<td class="text_right">' .$base_currency->symbol. app_format_money((float) $goods_receipt->total_goods_money, '') . '</td>
-		</tr>
-
-		<tr>
-		<td ></td>
-		<td ></td>
-		<td ></td>
-		<td class="text_left"><b>' . _l('value_of_inventory') . '</b></td>
-		<td class="text_right">' .$base_currency->symbol. app_format_money((float) $goods_receipt->value_of_inventory, '') . '</td>
-		</tr>';
-
-		$html .= $tax_data['pdf_html'];
-
-		$html .= '<tr>
-		<td ></td>
-		<td ></td>
-		<td ></td>
-		<td class="text_left"><b>' . _l('total_tax_money') . '</b></td>
-		<td class="text_right">' .$base_currency->symbol. app_format_money((float) $goods_receipt->total_tax_money, '') . '</td>
-		</tr>';
-
-		
-		
-		$html .= '<tr>
-		<td ></td>
-		<td ></td>
-		<td ></td>
-		<td class="text_left"><b>' . _l('total_money') . '</b></td>
-		<td class="text_right">' .$base_currency->symbol. app_format_money((float) $goods_receipt->total_money, '') . '</td>
-		</tr>
-		
-		</tbody>
-		</table>
-		<br><br><br>
-		';
-
-		if($warehouse_lotnumber_bottom_infor_option == 1){
-			$html .= '<table class="table">
-			<tbody>
-			<tr>
-			<td class="fw_width35"><h4>' . _l('deliver_name') . '</h4></td>
-			<td class="fw_width30"><h4>' . _l('stocker') . '</h4></td>
-			<td class="fw_width30"><h4>' . _l('chief_accountant') . '</h4></td>
-
-			</tr>
-			<tr>
-			<td class="fw_width35 fstyle">' . _l('sign_full_name') . '</td>
-			<td class="fw_width30 fstyle ">' . _l('sign_full_name') . '</td>
-			<td class="fw_width30 fstyle">' . _l('sign_full_name') . '</td>
-			</tr
-
-			</tbody>
-			</table>';
-		}
-
-		$html .= '<br>
-		<br>
-		<br>
-		<br>
-		<table class="table">
-		<tbody>
-		<tr>';
-		$html .= '<link href="' . FCPATH.'modules/warehouse/assets/css/pdf_style.css' . '"  rel="stylesheet" type="text/css" />';
-		// old link
-		// $html .= '<link href="' . module_dir_url(WAREHOUSE_MODULE_NAME, 'assets/css/pdf_style.css') . '"  rel="stylesheet" type="text/css" />';
+		$html .= '<table width="745" cellspacing="0" style="font-size:18px;"><tr style="font-weight:bold;">';
+		$html .= '<td width="179"></td><td width="216"></td>';
+		$html .= '<td width="179" align="right">Total Qtys</td>';
+		$html .= '<td width="171" align="right">' . $total_qty . '</td>';
+		$html .= '</tr></table>';
+		$html .= '<hr width="100%" color="#000000" size="0.4" />';
 
 		return $html;
 	}

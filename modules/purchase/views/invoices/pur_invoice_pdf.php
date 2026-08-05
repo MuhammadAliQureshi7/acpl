@@ -4,94 +4,107 @@ $dimensions = $pdf->getPageDimensions();
 $CI = &get_instance();
 $CI->load->model('purchase/purchase_model');
 
-$info_right_column = '';
-$info_left_column  = '';
+$company_name    = get_option('invoice_company_name');
+$company_address = get_option('invoice_company_address');
 
-$info_right_column .= '<span style="font-weight:bold;font-size:27px;">' . _l('pur_invoice') . '</span><br />';
-$info_right_column .= '<b style="color:#4e4e4e;"># ' . $pur_invoice->invoice_number . '</b>';
-
-$info_left_column .= pdf_logo_url();
-pdf_multi_row($info_left_column, $info_right_column, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
-$pdf->ln(10);
-
-$vendor = $CI->purchase_model->get_vendor($pur_invoice->vendor);
-$vendor_name = $vendor ? $vendor->company : $pur_invoice->vendor;
-
-$organization_info = '<div style="color:#424242;">' . format_organization_info() . '</div>';
-
-$vendor_info = '<b>' . _l('vendor') . ':</b>';
-$vendor_info .= '<div style="color:#424242;">' . $vendor_name . '</div>';
-$vendor_info .= '<br />' . _l('invoice_date') . ': ' . _d($pur_invoice->invoice_date) . '<br />';
-$vendor_info .= _l('payment_status') . ': ' . _l($pur_invoice->payment_status) . '<br />';
-if(!empty($pur_invoice->adminnote)){
-    $vendor_info .= '<br />' . _l('adminnote') . ': ' . $pur_invoice->adminnote . '<br />';
+$vendor = null;
+if (is_numeric($pur_invoice->vendor) && $pur_invoice->vendor != 0) {
+    $vendor = $CI->db->get_where(db_prefix() . 'pur_vendor', ['userid' => $pur_invoice->vendor])->row();
 }
 
-$left_info  = $organization_info;
-$right_info = $vendor_info;
-pdf_multi_row($left_info, $right_info, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
+$vendor_no      = '';
+$vendor_name    = '';
+$vendor_address = '';
+$vendor_ntn     = '';
 
-$pdf->Ln(hooks()->apply_filters('pdf_info_and_table_separator', 6));
+if ($vendor) {
+    $vendor_no      = (isset($vendor->vendor_code) && $vendor->vendor_code != '' ? $vendor->vendor_code : $vendor->userid);
+    $vendor_name    = $vendor->company;
+    $vendor_address = trim(implode(', ', array_filter([$vendor->address, $vendor->city, $vendor->state])));
+    $vendor_ntn     = (isset($vendor->vat) ? $vendor->vat : '');
+}
 
 $pur_invoice_items = $CI->purchase_model->get_pur_invoice_detail($pur_invoice->id);
 
-$tblhtml = '<table width="100%" bgcolor="#fff" cellspacing="0" cellpadding="5" border="1">
-    <tr height="30" style="background-color:#f0f0f0;font-weight:bold;">
-        <th width="5%" align="center">#</th>
-        <th width="35%" align="left">' . _l('item_description') . '</th>
-        <th width="10%" align="right">' . _l('purchase_quantity') . '</th>
-        <th width="13%" align="right">' . _l('rate') . '</th>
-        <th width="13%" align="right">' . _l('subtotal') . '</th>
-        <th width="12%" align="right">' . _l('total_tax') . '</th>
-        <th width="12%" align="right">' . _l('subtotal_after_tax') . '</th>
-    </tr>';
-$i=1; $total_tax_sum = 0;
-if(count($pur_invoice_items)>0){
-    foreach($pur_invoice_items as $item){
-        $subtotal = $item['qty'] * $item['rate'];
-        $row_tax = floatval($item['total_tax']);
-        $total_tax_sum += $row_tax;
-        $tblhtml .= '<tr>
-            <td align="center">' . $i++ . '</td>
-            <td align="left">' . (isset($item['item_commodity_code']) && $item['item_commodity_code'] != '' ? '[' . $item['item_commodity_code'] . '] ' : (isset($item['item_code']) && $item['item_code'] != '' ? '[' . $item['item_code'] . '] ' : '')) . $item['description'] . '</td>
-            <td align="right">' . $item['qty'] . '</td>
-            <td align="right">' . app_format_money($item['rate'], '') . '</td>
-            <td align="right">' . app_format_money($subtotal, '') . '</td>
-            <td align="right">' . app_format_money($row_tax, '') . '</td>
-            <td align="right">' . app_format_money($item['amount_after_tax'], '') . '</td>
-        </tr>';
+$esc = function ($v) {
+    return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+};
+
+$pdf->setMargins(6.5, 8, 6.5);
+
+$html = '';
+
+$logo = pdf_logo_url();
+$html .= '<table width="100%" cellpadding="2" cellspacing="0"><tr><td align="left">' . $logo . '</td></tr>';
+$html .= '<tr><td align="left"><div style="font-size:16px;font-weight:bold;">' . html_entity_decode($company_name) . '</div></td></tr>';
+if ($company_address != '') {
+    $html .= '<tr><td align="left"><div style="font-size:16px;">' . html_entity_decode($company_address) . '</div></td></tr>';
+}
+$html .= '</table>';
+
+$html .= '<br />';
+$html .= '<div style="text-align:center;font-size:18px;font-weight:bold;">INVOICE</div>';
+$html .= '<br />';
+
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;">';
+$html .= '<tr><td width="22%"><b>Supplier No.</b></td><td width="28%">' . $esc($vendor_no) . '</td><td width="22%"><b>Invoice Date</b></td><td width="28%">' . _d($pur_invoice->invoice_date) . '</td></tr>';
+$html .= '<tr><td><b>Supplier Name</b></td><td>' . $esc($vendor_name) . '</td><td><b>Invoice No.</b></td><td>' . $esc($pur_invoice->invoice_number) . '</td></tr>';
+$html .= '<tr><td><b>Supplier Address</b></td><td>' . $esc($vendor_address) . '</td><td><b>NTN No.</b></td><td></td></tr>';
+$html .= '<tr><td><b>Supplier NTN No.</b></td><td>' . $esc($vendor_ntn) . '</td><td><b>STR No.</b></td><td></td></tr>';
+$html .= '<tr><td><b>Supplier STR No.</b></td><td></td><td></td><td></td></tr>';
+$html .= '</table>';
+
+$html .= '<br />';
+$html .= '<hr width="100%" color="#999999" size="0.2" />';
+
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;">';
+$html .= '<tr style="font-weight:bold;text-align:center;">';
+$html .= '<td width="16%">Code</td>';
+$html .= '<td width="21%">Product Name</td>';
+$html .= '<td width="8%">Qty</td>';
+$html .= '<td width="12%">Rate/Unit</td>';
+$html .= '<td width="17%">Total Amount<br />Excluding Tax</td>';
+$html .= '<td width="8%">GST<br />Rate</td>';
+$html .= '<td width="18%">Value Inclusive<br />of Sales Tax</td>';
+$html .= '</tr></table>';
+$html .= '<hr width="100%" color="#000000" size="0.4" />';
+
+if (count($pur_invoice_items) > 0) {
+    foreach ($pur_invoice_items as $item) {
+        $item_code = (isset($item['item_commodity_code']) && $item['item_commodity_code'] != '' ? $item['item_commodity_code'] : (isset($item['item_code']) ? $item['item_code'] : ''));
+        $subtotal  = floatval($item['qty']) * floatval($item['rate']);
+        $row_tax   = floatval($item['total_tax']);
+        $gst_rate  = ($subtotal > 0 && $row_tax > 0) ? rtrim(rtrim(number_format(($row_tax / $subtotal) * 100, 2), '0'), '.') . '%' : '';
+
+        $html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;"><tr>';
+        $html .= '<td width="16%" align="center">' . $esc($item_code) . '</td>';
+        $html .= '<td width="21%">' . $esc($item['description']) . '</td>';
+        $html .= '<td width="8%" align="center">' . $item['qty'] . '</td>';
+        $html .= '<td width="12%" align="right">' . app_format_money($item['rate'], '') . '</td>';
+        $html .= '<td width="17%" align="right">' . app_format_money($subtotal, '') . '</td>';
+        $html .= '<td width="8%" align="center">' . $gst_rate . '</td>';
+        $html .= '<td width="18%" align="right">' . app_format_money($item['amount_after_tax'], '') . '</td>';
+        $html .= '</tr></table>';
+        $html .= '<hr width="100%" color="#000000" size="0.2" />';
     }
 }
-$tblhtml .= '</table>';
-$pdf->writeHTML($tblhtml, true, false, false, false, '');
-$pdf->Ln(8);
 
-$tbltotal = '<table cellpadding="6" style="font-size:' . ($font_size + 4) . 'px">';
-$tbltotal .= '<tr><td align="right" width="85%"><strong>' . _l('invoice_subtotal') . '</strong></td>
-    <td align="right" width="15%">' . app_format_money($pur_invoice->subtotal, '') . '</td></tr>';
-if($total_tax_sum > 0){
-    $tbltotal .= '<tr><td align="right" width="85%"><strong>' . _l('total_tax') . '</strong></td>
-        <td align="right" width="15%">' . app_format_money($total_tax_sum, '') . '</td></tr>';
-}
-if(isset($pur_invoice->discount_total) && floatval($pur_invoice->discount_total) > 0){
-    $tbltotal .= '<tr><td align="right" width="85%"><strong>' . _l('invoice_discount') . '</strong></td>
-        <td align="right" width="15%">-' . app_format_money($pur_invoice->discount_total, '') . '</td></tr>';
-}
-if(isset($pur_invoice->adjustment) && floatval($pur_invoice->adjustment) != 0){
-    $tbltotal .= '<tr><td align="right" width="85%"><strong>' . _l('invoice_adjustment') . '</strong></td>
-        <td align="right" width="15%">' . app_format_money($pur_invoice->adjustment, '') . '</td></tr>';
-}
-$tbltotal .= '<tr style="background-color:#f0f0f0;">
-    <td align="right" width="85%"><strong>' . _l('invoice_total') . '</strong></td>
-    <td align="right" width="15%">' . app_format_money($pur_invoice->total, '') . '</td></tr>';
-$tbltotal .= '</table>';
-$pdf->writeHTML($tbltotal, true, false, false, false, '');
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;"><tr>';
+$html .= '<td width="16%"></td><td width="21%" style="font-weight:bold;">TOTAL</td><td width="8%"></td><td width="12%"></td><td width="17%"></td><td width="8%"></td>';
+$html .= '<td width="18%" align="right" style="font-weight:bold;">' . app_format_money($pur_invoice->total, '') . '</td>';
+$html .= '</tr></table>';
+$html .= '<hr width="100%" color="#000000" size="0.4" />';
 
-if(!empty($pur_invoice->vendor_note)){
-    $pdf->Ln(4);
-    $pdf->SetFont($font_name, 'B', $font_size);
-    $pdf->writeHTMLCell('', '', '', '', _l('vendor_note'), 0, 1, false, true, 'L', true);
-    $pdf->SetFont($font_name, '', $font_size);
-    $pdf->Ln(2);
-    $pdf->writeHTMLCell('', '', '', '', $pur_invoice->vendor_note, 0, 1, false, true, 'L', true);
+$html .= '<br /><br />';
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;">';
+$html .= '<tr><td width="55%"><b>AS ON:</b> ' . _d(date('Y-m-d')) . '</td><td width="45%" align="right"></td></tr>';
+$html .= '<tr><td><b>PAYABLE AMOUNT (EXCLUDING ABOVE INVOICE)</b></td><td align="right"></td></tr>';
+$html .= '<tr><td><b>OVERDUE AMOUNT:</b> after payment period decided</td><td align="right"></td></tr>';
+$html .= '</table>';
+
+if (!empty($pur_invoice->vendor_note)) {
+    $html .= '<br />';
+    $html .= '<div style="font-size:15px;"><b>' . _l('vendor_note') . ': </b>' . $pur_invoice->vendor_note . '</div>';
 }
+
+$pdf->writeHTML($html, true, false, false, false, '');
