@@ -2735,6 +2735,7 @@ class Warehouse_model extends App_Model {
 
 		$invoice_number = '';
 		$invoice_date   = '';
+		$serials_by_item = [];
 
 		if (isset($goods_receipt->pur_invoice_id) && is_numeric($goods_receipt->pur_invoice_id) && $goods_receipt->pur_invoice_id != 0) {
 			$this->load->model('purchase/purchase_model');
@@ -2742,6 +2743,11 @@ class Warehouse_model extends App_Model {
 			if ($pur_invoice) {
 				$invoice_number = $pur_invoice->invoice_number;
 				$invoice_date   = $pur_invoice->invoice_date;
+			}
+
+			$pi_serials = get_pi_serials($goods_receipt->pur_invoice_id);
+			foreach ($pi_serials as $pi_serial) {
+				$serials_by_item[$pi_serial['item_id']][] = $pi_serial['serial_number'];
 			}
 		}
 		if ($invoice_number == '') {
@@ -2770,16 +2776,19 @@ class Warehouse_model extends App_Model {
 		$html .= '<br />';
 		$html .= '<table width="745" cellspacing="0" style="font-size:18px;">';
 		$html .= '<tr>';
-		$html .= '<td width="164"><b>Supplier No.</b></td><td width="208">' . htmlspecialchars($supplier_no) . '</td>';
-		$html .= '<td width="164"><b>Invoice Date</b></td><td width="209">' . _d($invoice_date) . '</td>';
+		$html .= '<td width="164"><b>Supplier No.</b></td><td width="581">' . htmlspecialchars($supplier_no) . '</td>';
 		$html .= '</tr>';
 		$html .= '<tr>';
-		$html .= '<td width="164"><b>Supplier Name</b></td><td width="208">' . htmlspecialchars($supplier_name) . '</td>';
-		$html .= '<td width="164"><b>Invoice Number</b></td><td width="209">' . htmlspecialchars($invoice_number) . '</td>';
+		$html .= '<td width="164"><b>Supplier Name</b></td><td width="581">' . htmlspecialchars($supplier_name) . '</td>';
 		$html .= '</tr>';
 		$html .= '<tr>';
-		$html .= '<td width="164"><b>Supplier Address</b></td><td width="208">' . htmlspecialchars($supplier_address) . '</td>';
-		$html .= '<td width="164"></td><td width="209"></td>';
+		$html .= '<td width="164"><b>Supplier Address</b></td><td width="581">' . htmlspecialchars($supplier_address) . '</td>';
+		$html .= '</tr>';
+		$html .= '<tr>';
+		$html .= '<td width="164"><b>Invoice Date</b></td><td width="581">' . _d($invoice_date) . '</td>';
+		$html .= '</tr>';
+		$html .= '<tr>';
+		$html .= '<td width="164"><b>Invoice Number</b></td><td width="581">' . htmlspecialchars($invoice_number) . '</td>';
 		$html .= '</tr>';
 		$html .= '</table>';
 
@@ -2801,7 +2810,7 @@ class Warehouse_model extends App_Model {
 			foreach ($goods_receipt_detail as $receipt_value) {
 				$commodity_code = '';
 				$commodity_name = (isset($receipt_value['commodity_name']) ? $receipt_value['commodity_name'] : '');
-				$serial_no      = (isset($receipt_value['lot_number']) ? $receipt_value['lot_number'] : '');
+				$serial_no      = '';
 				$quantities     = (isset($receipt_value['quantities']) ? $receipt_value['quantities'] : 0);
 
 				$item_info = get_commodity_name($receipt_value['commodity_code']);
@@ -2813,6 +2822,15 @@ class Warehouse_model extends App_Model {
 				}
 				if ($commodity_name == '') {
 					$commodity_name = wh_get_item_variatiom($receipt_value['commodity_code']);
+				}
+
+				if (isset($serials_by_item[$receipt_value['commodity_code']])) {
+					$serial_no = implode(', ', $serials_by_item[$receipt_value['commodity_code']]);
+				} elseif ($commodity_code != '' && isset($serials_by_item[$commodity_code])) {
+					$serial_no = implode(', ', $serials_by_item[$commodity_code]);
+				}
+				if ($serial_no == '') {
+					$serial_no = (isset($receipt_value['lot_number']) ? $receipt_value['lot_number'] : '');
 				}
 
 				$total_qty += (float) $quantities;

@@ -1854,8 +1854,11 @@ class warehouse extends AdminController {
 		}
 
 		$type = 'D';
-		ob_end_clean();
-		
+
+		while (ob_get_level() > 0) {
+			ob_end_clean();
+		}
+
 		if ($this->input->get('output_type')) {
 			$type = $this->input->get('output_type');
 		}

@@ -1646,3 +1646,23 @@ function get_po_logo($width = 120, $class = ''){
 
     return  $logoImage;
 }
+/**
+ * Get serial numbers of a purchase invoice from tblitemserials
+ *
+ * @param  int    $pur_invoice_id  purchase invoice id (tblpur_invoices.id)
+ * @param  mixed  $item_id         optional filter by item (tblitems.id or commodity code), empty for all items of the invoice
+ * @return array
+ */
+function get_pi_serials($pur_invoice_id, $item_id = '')
+{
+    $CI = & get_instance();
+
+    $CI->db->from(db_prefix() . 'itemserials');
+    $CI->db->where('pi_id', intval($pur_invoice_id));
+    if ($item_id !== '' && $item_id !== null) {
+        $CI->db->where('item_id', $item_id);
+    }
+    $CI->db->order_by('serial_number', 'ASC');
+
+    return $CI->db->get()->result_array();
+}
