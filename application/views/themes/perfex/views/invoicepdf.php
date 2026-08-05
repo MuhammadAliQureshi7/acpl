@@ -1,269 +1,128 @@
-<?php
-
-defined('BASEPATH') or exit('No direct script access allowed');
+<?php defined('BASEPATH') or exit('No direct script access allowed');
 
 $dimensions = $pdf->getPageDimensions();
 
-$info_right_column = '';
-$info_left_column  = '';
+$CI = &get_instance();
 
-$info_right_column .= '<span style="font-weight:bold;font-size:27px;">' . _l('invoice_pdf_heading') . '</span><br />';
-$info_right_column .= '<b style="color:#4e4e4e;"># ' . $invoice_number . '</b>';
+$company_name    = get_option('invoice_company_name');
+$company_address = get_option('invoice_company_address');
 
-if (get_option('show_status_on_pdf_ei') == 1) {
-    $info_right_column .= '<br /><span style="color:rgb(' . invoice_status_color_pdf($status) . ');text-transform:uppercase;">' . format_invoice_status($status, '', false) . '</span>';
+$client = null;
+if (is_numeric($invoice->clientid) && $invoice->clientid != 0) {
+    $client = $CI->db->get_where(db_prefix() . 'clients', ['userid' => $invoice->clientid])->row();
 }
 
-if ($status != Invoices_model::STATUS_PAID && $status != Invoices_model::STATUS_CANCELLED && get_option('show_pay_link_to_invoice_pdf') == 1
-    && found_invoice_mode($payment_modes, $invoice->id, false)) {
-    $info_right_column .= ' - <a style="color:#84c529;text-decoration:none;text-transform:uppercase;" href="' . site_url('invoice/' . $invoice->id . '/' . $invoice->hash) . '"><1b>' . _l('view_invoice_pdf_link_pay') . '</1b></a>';
-}
+$customer_no      = '';
+$customer_name    = '';
+$customer_address = '';
+$customer_ntn     = '';
 
-// Add logo
-$info_left_column .= pdf_logo_url();
-
-// Write top left logo and right column info/text
-pdf_multi_row($info_left_column, $info_right_column, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
-
-$pdf->ln(10);
-
-$organization_info = '<div style="color:#424242;">';
-
-$organization_info .= format_organization_info();
-
-$organization_info .= '</div>';
-
-// Bill to
-$invoice_info = '<b>' . _l('invoice_bill_to') . ':</b>';
-$invoice_info .= '<div style="color:#424242;">';
-    $invoice_info .= format_customer_info($invoice, 'invoice', 'billing');
-$invoice_info .= '</div>';
-
-// ship to to
-if ($invoice->include_shipping == 1 && $invoice->show_shipping_on_invoice == 1) {
-    $invoice_info .= '<br /><b>' . _l('ship_to') . ':</b>';
-    $invoice_info .= '<div style="color:#424242;">';
-    $invoice_info .= format_customer_info($invoice, 'invoice', 'shipping');
-    $invoice_info .= '</div>';
-}
-
-$invoice_info .= '<br />' . _l('invoice_data_date') . ' ' . _d($invoice->date) . '<br />';
-
-$invoice_info = hooks()->apply_filters('invoice_pdf_header_after_date', $invoice_info, $invoice);
-
-if (!empty($invoice->duedate)) {
-    $invoice_info .= _l('invoice_data_duedate') . ' ' . _d($invoice->duedate) . '<br />';
-    $invoice_info = hooks()->apply_filters('invoice_pdf_header_after_due_date', $invoice_info, $invoice);
-}
-
-if ($invoice->sale_agent && get_option('show_sale_agent_on_invoices') == 1) {
-    $invoice_info .= _l('sale_agent_string') . ': ' . get_staff_full_name($invoice->sale_agent) . '<br />';
-    $invoice_info = hooks()->apply_filters('invoice_pdf_header_after_sale_agent', $invoice_info, $invoice);
-}
-
-if ($invoice->project_id && get_option('show_project_on_invoice') == 1) {
-    $invoice_info .= _l('project') . ': ' . get_project_name_by_id($invoice->project_id) . '<br />';
-    $invoice_info = hooks()->apply_filters('invoice_pdf_header_after_project_name', $invoice_info, $invoice);
-}
-
-$invoice_info = hooks()->apply_filters('invoice_pdf_header_before_custom_fields', $invoice_info, $invoice);
-
-foreach ($pdf_custom_fields as $field) {
-    $value = get_custom_field_value($invoice->id, $field['id'], 'invoice');
-    if ($value == '') {
-        continue;
+if ($client) {
+    $customer_no      = $client->userid;
+    $customer_name    = $client->company;
+    $customer_address = trim(implode(', ', array_filter([$client->billing_street, $client->billing_city, $client->billing_state])));
+    if ($customer_address == '') {
+        $customer_address = trim(implode(', ', array_filter([$client->address, $client->city, $client->state])));
     }
-    $invoice_info .= $field['name'] . ': ' . $value . '<br />';
+    $customer_ntn = (isset($client->vat) ? $client->vat : '');
 }
 
-$invoice_info      = hooks()->apply_filters('invoice_pdf_header_after_custom_fields', $invoice_info, $invoice);
-$organization_info = hooks()->apply_filters('invoicepdf_organization_info', $organization_info, $invoice);
-$invoice_info      = hooks()->apply_filters('invoice_pdf_info', $invoice_info, $invoice);
-
-$left_info  = $swap == '1' ? $invoice_info : $organization_info;
-$right_info = $swap == '1' ? $organization_info : $invoice_info;
-
-pdf_multi_row($left_info, $right_info, $pdf, ($dimensions['wk'] / 2) - $dimensions['lm']);
-
-// The Table
-$pdf->Ln(hooks()->apply_filters('pdf_info_and_table_separator', 6));
-
-// The items table
-$items = get_items_table_data($invoice, 'invoice', 'pdf');
-// dd($items->table());
-$tblhtml = $items->table();
-
-$pdf->writeHTML($tblhtml, true, false, false, false, '');
-
-$pdf->Ln(8);
-
-$tbltotal = '';
-$tbltotal .= '<table cellpadding="6" style="font-size:' . ($font_size + 4) . 'px">';
-$tbltotal .= '
-<tr>
-    <td align="right" width="85%"><strong>' . _l('invoice_subtotal') . '</strong></td>
-    <td align="right" width="15%">' . app_format_money($invoice->subtotal, $invoice->currency_name) . '</td>
-</tr>';
-
-if (is_sale_discount_applied($invoice)) {
-    $tbltotal .= '
-    <tr>
-        <td align="right" width="85%"><strong>' . _l('invoice_discount');
-    if (is_sale_discount($invoice, 'percent')) {
-        $tbltotal .= ' (' . app_format_number($invoice->discount_percent, true) . '%)';
-    }
-    $tbltotal .= '</strong>';
-    $tbltotal .= '</td>';
-    $tbltotal .= '<td align="right" width="15%">-' . app_format_money($invoice->discount_total, $invoice->currency_name) . '</td>
-    </tr>';
+$sales_person = '';
+if (isset($invoice->sale_agent) && $invoice->sale_agent != 0) {
+    $sales_person = get_staff_full_name($invoice->sale_agent);
 }
 
-// Calculate total_tax from tblitemable (sum of total_tax column)
-$total_tax_pdf = 0;
-$items_data = get_items_by_type('invoice', $invoice->id);
-foreach($items_data as $itm){
-    if(isset($itm['total_tax']) && $itm['total_tax'] != '' && $itm['total_tax'] > 0){
-        $total_tax_pdf += floatval($itm['total_tax']);
-    }
+$invoice_items = isset($invoice->items) ? $invoice->items : get_items_by_type('invoice', $invoice->id);
+
+$esc = function ($v) {
+    return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
+};
+
+$pdf->setMargins(6.5, 8, 6.5);
+
+$html = '';
+
+$logo = pdf_logo_url();
+$html .= '<table width="100%" cellpadding="2" cellspacing="0"><tr><td align="left">' . $logo . '</td></tr>';
+$html .= '<tr><td align="left"><div style="font-size:16px;font-weight:bold;">' . html_entity_decode($company_name) . '</div></td></tr>';
+if ($company_address != '') {
+    $html .= '<tr><td align="left"><div style="font-size:16px;">' . html_entity_decode($company_address) . '</div></td></tr>';
 }
-// Fallback: if no total_tax found, use old tax calculation from items table
-if($total_tax_pdf == 0){
-    foreach ($items->taxes() as $tax) {
-        $tbltotal .= '<tr>
-        <td align="right" width="85%"><strong>' . $tax['taxname'] . ' (' . app_format_number($tax['taxrate']) . '%)' . '</strong></td>
-        <td align="right" width="15%">' . app_format_money($tax['total_tax'], $invoice->currency_name) . '</td>
-    </tr>';
-    }
-} else {
-    $tbltotal .= '<tr>
-    <td align="right" width="85%"><strong>' . _l('total_tax') . '</strong></td>
-    <td align="right" width="15%">' . app_format_money($total_tax_pdf, $invoice->currency_name) . '</td>
-</tr>';
-}
+$html .= '</table>';
 
-if ((int) $invoice->adjustment != 0) {
-    $tbltotal .= '<tr>
-    <td align="right" width="85%"><strong>' . _l('invoice_adjustment') . '</strong></td>
-    <td align="right" width="15%">' . app_format_money($invoice->adjustment, $invoice->currency_name) . '</td>
-</tr>';
-}
+$html .= '<br />';
+$html .= '<div style="text-align:center;font-size:18px;font-weight:bold;">INVOICE</div>';
+$html .= '<br />';
 
-$tbltotal .= '
-<tr style="background-color:#f0f0f0;">
-    <td align="right" width="85%"><strong>' . _l('invoice_total') . '</strong></td>
-    <td align="right" width="15%">' . app_format_money($invoice->total, $invoice->currency_name) . '</td>
-</tr>';
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;">';
+$html .= '<tr><td width="22%"><b>Customer No.</b></td><td width="28%">' . $esc($customer_no) . '</td><td width="22%"><b>Invoice Date</b></td><td width="28%">' . _d($invoice->date) . '</td></tr>';
+$html .= '<tr><td><b>Customer Name</b></td><td>' . $esc($customer_name) . '</td><td><b>Invoice No.</b></td><td>' . $esc($invoice_number) . '</td></tr>';
+$html .= '<tr><td><b>Customer Address</b></td><td>' . $esc($customer_address) . '</td><td><b>NTN No.</b></td><td></td></tr>';
+$html .= '<tr><td><b>Customer NTN No.</b></td><td>' . $esc($customer_ntn) . '</td><td><b>STR No.</b></td><td></td></tr>';
+$html .= '<tr><td><b>Customer STR No.</b></td><td></td><td><b>Sales Person</b></td><td>' . $esc($sales_person) . '</td></tr>';
+$html .= '</table>';
 
-if (count($invoice->payments) > 0 && get_option('show_total_paid_on_invoice') == 1) {
-    $tbltotal .= '
-    <tr>
-        <td align="right" width="85%"><strong>' . _l('invoice_total_paid') . '</strong></td>
-        <td align="right" width="15%">-' . app_format_money(sum_from_table(db_prefix() . 'invoicepaymentrecords', [
-        'field' => 'amount',
-        'where' => [
-            'invoiceid' => $invoice->id,
-        ],
-    ]), $invoice->currency_name) . '</td>
-    </tr>';
-}
+$html .= '<br />';
+$html .= '<hr width="100%" color="#999999" size="0.2" />';
 
-if (get_option('show_credits_applied_on_invoice') == 1 && $credits_applied = total_credits_applied_to_invoice($invoice->id)) {
-    $tbltotal .= '
-    <tr>
-        <td align="right" width="85%"><strong>' . _l('applied_credits') . '</strong></td>
-        <td align="right" width="15%">-' . app_format_money($credits_applied, $invoice->currency_name) . '</td>
-    </tr>';
-}
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;">';
+$html .= '<tr style="font-weight:bold;text-align:center;">';
+$html .= '<td width="16%">Code</td>';
+$html .= '<td width="21%">Product Name</td>';
+$html .= '<td width="8%">Qty</td>';
+$html .= '<td width="12%">Rate/Unit</td>';
+$html .= '<td width="17%">Total Amount<br />Excluding Tax</td>';
+$html .= '<td width="8%">GST<br />Rate</td>';
+$html .= '<td width="18%">Value Inclusive<br />of Sales Tax</td>';
+$html .= '</tr></table>';
+$html .= '<hr width="100%" color="#000000" size="0.4" />';
 
-if (get_option('show_amount_due_on_invoice') == 1 && $invoice->status != Invoices_model::STATUS_CANCELLED) {
-    $tbltotal .= '<tr style="background-color:#f0f0f0;">
-       <td align="right" width="85%"><strong>' . _l('invoice_amount_due') . '</strong></td>
-       <td align="right" width="15%">' . app_format_money($invoice->total_left_to_pay, $invoice->currency_name) . '</td>
-   </tr>';
-}
-
-$tbltotal .= '</table>';
-
-$pdf->writeHTML($tbltotal, true, false, false, false, '');
-
-if (get_option('total_to_words_enabled') == 1) {
-    // Set the font bold
-    $pdf->SetFont($font_name, 'B', $font_size);
-    $pdf->writeHTMLCell('', '', '', '', _l('num_word') . ': ' . $CI->numberword->convert($invoice->total, $invoice->currency_name), 0, 1, false, true, 'C', true);
-    // Set the font again to normal like the rest of the pdf
-    $pdf->SetFont($font_name, '', $font_size);
-    $pdf->Ln(4);
-}
-
-if (count($invoice->payments) > 0 && get_option('show_transactions_on_invoice_pdf') == 1) {
-    $pdf->Ln(4);
-    $border = 'border-bottom-color:#000000;border-bottom-width:1px;border-bottom-style:solid; 1px solid black;';
-    $pdf->SetFont($font_name, 'B', $font_size);
-    $pdf->Cell(0, 0, _l('invoice_received_payments') . ':', 0, 1, 'L', 0, '', 0);
-    $pdf->SetFont($font_name, '', $font_size);
-    $pdf->Ln(4);
-    $tblhtml = '<table width="100%" bgcolor="#fff" cellspacing="0" cellpadding="5" border="0">
-        <tr height="20"  style="color:#000;border:1px solid #000;">
-        <th width="25%;" style="' . $border . '">' . _l('invoice_payments_table_number_heading') . '</th>
-        <th width="25%;" style="' . $border . '">' . _l('invoice_payments_table_mode_heading') . '</th>
-        <th width="25%;" style="' . $border . '">' . _l('invoice_payments_table_date_heading') . '</th>
-        <th width="25%;" style="' . $border . '">' . _l('invoice_payments_table_amount_heading') . '</th>
-    </tr>';
-    $tblhtml .= '<tbody>';
-    foreach ($invoice->payments as $payment) {
-        $payment_name = $payment['name'];
-        if (!empty($payment['paymentmethod'])) {
-            $payment_name .= ' - ' . $payment['paymentmethod'];
+if (count($invoice_items) > 0) {
+    foreach ($invoice_items as $item) {
+        $item_code = (isset($item['item_code']) && $item['item_code'] != '' ? $item['item_code'] : '');
+        if (is_numeric($item_code) && $item_code != 0) {
+            $item_info = $CI->db->get_where(db_prefix() . 'items', ['id' => $item_code])->row();
+            $item_code = ($item_info && $item_info->commodity_code != '' ? $item_info->commodity_code : $item_code);
         }
-        $tblhtml .= '
-            <tr>
-            <td>' . $payment['paymentid'] . '</td>
-            <td>' . $payment_name . '</td>
-            <td>' . _d($payment['date']) . '</td>
-            <td>' . app_format_money($payment['amount'], $invoice->currency_name) . '</td>
-            </tr>
-        ';
-    }
-    $tblhtml .= '</tbody>';
-    $tblhtml .= '</table>';
-    $pdf->writeHTML($tblhtml, true, false, false, false, '');
-}
+        $subtotal = floatval($item['qty']) * floatval($item['rate']);
+        $row_tax  = floatval(isset($item['total_tax']) ? $item['total_tax'] : 0);
+        $gst_rate = ($subtotal > 0 && $row_tax > 0) ? rtrim(rtrim(number_format(($row_tax / $subtotal) * 100, 2), '0'), '.') . '%' : '';
 
-if (found_invoice_mode($payment_modes, $invoice->id, true, true)) {
-    $pdf->Ln(4);
-    $pdf->SetFont($font_name, 'B', $font_size);
-    $pdf->Cell(0, 0, _l('invoice_html_offline_payment') . ':', 0, 1, 'L', 0, '', 0);
-    $pdf->SetFont($font_name, '', $font_size);
-
-    foreach ($payment_modes as $mode) {
-        if (is_numeric($mode['id'])) {
-            if (!is_payment_mode_allowed_for_invoice($mode['id'], $invoice->id)) {
-                continue;
-            }
-        }
-        if (isset($mode['show_on_pdf']) && $mode['show_on_pdf'] == 1) {
-            $pdf->Ln(1);
-            $pdf->Cell(0, 0, $mode['name'], 0, 1, 'L', 0, '', 0);
-            $pdf->Ln(2);
-            $pdf->writeHTMLCell('', '', '', '', $mode['description'], 0, 1, false, true, 'L', true);
-        }
+        $html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;"><tr>';
+        $html .= '<td width="16%" align="center">' . $esc($item_code) . '</td>';
+        $html .= '<td width="21%">' . $esc($item['description']) . '</td>';
+        $html .= '<td width="8%" align="center">' . $item['qty'] . '</td>';
+        $html .= '<td width="12%" align="right">' . app_format_money($item['rate'], $invoice->currency_name) . '</td>';
+        $html .= '<td width="17%" align="right">' . app_format_money($subtotal, $invoice->currency_name) . '</td>';
+        $html .= '<td width="8%" align="center">' . $gst_rate . '</td>';
+        $html .= '<td width="18%" align="right">' . app_format_money(($subtotal + $row_tax), $invoice->currency_name) . '</td>';
+        $html .= '</tr></table>';
+        $html .= '<hr width="100%" color="#000000" size="0.2" />';
     }
 }
+
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;"><tr>';
+$html .= '<td width="16%"></td><td width="21%" style="font-weight:bold;">TOTAL</td><td width="8%"></td><td width="12%"></td><td width="17%"></td><td width="8%"></td>';
+$html .= '<td width="18%" align="right" style="font-weight:bold;">' . app_format_money($invoice->total, $invoice->currency_name) . '</td>';
+$html .= '</tr></table>';
+$html .= '<hr width="100%" color="#000000" size="0.4" />';
+
+$html .= '<br /><br />';
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;">';
+$html .= '<tr><td width="55%"><b>AS ON:</b> ' . _d(date('Y-m-d')) . '</td><td width="45%" align="right"></td></tr>';
+$html .= '<tr><td><b>OUTSTANDING AMOUNT (EXCLUDING ABOVE INVOICE)</b></td><td align="right"></td></tr>';
+$html .= '<tr><td><b>OVERDUE AMOUNT:</b> after credit period decided</td><td align="right"></td></tr>';
+$html .= '</table>';
 
 if (!empty($invoice->clientnote)) {
-    $pdf->Ln(4);
-    $pdf->SetFont($font_name, 'B', $font_size);
-    $pdf->Cell(0, 0, _l('invoice_note'), 0, 1, 'L', 0, '', 0);
-    $pdf->SetFont($font_name, '', $font_size);
-    $pdf->Ln(2);
-    $pdf->writeHTMLCell('', '', '', '', $invoice->clientnote, 0, 1, false, true, 'L', true);
+    $html .= '<br />';
+    $html .= '<div style="font-size:15px;"><b>' . _l('invoice_note') . ': </b>' . $invoice->clientnote . '</div>';
 }
 
-if (!empty($invoice->terms)) {
-    $pdf->Ln(4);
-    $pdf->SetFont($font_name, 'B', $font_size);
-    $pdf->Cell(0, 0, _l('terms_and_conditions') . ':', 0, 1, 'L', 0, '', 0);
-    $pdf->SetFont($font_name, '', $font_size);
-    $pdf->Ln(2);
-    $pdf->writeHTMLCell('', '', '', '', $invoice->terms, 0, 1, false, true, 'L', true);
-}
+$html .= '<br /><br />';
+$html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;"><tr>';
+$html .= '<td width="50%"><b>For ' . html_entity_decode($company_name) . '</b></td>';
+$html .= '<td width="50%" align="right"><b>Customer Signature and Stamp</b></td>';
+$html .= '</tr></table>';
+
+$pdf->writeHTML($html, true, false, false, false, '');

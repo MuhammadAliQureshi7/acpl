@@ -50,7 +50,7 @@ class Invoice_pdf extends App_pdf
 
     public function get_format_array()
     {
-        return ['orientation' => 'L', 'format' => 'A4'];
+        return ['orientation' => 'P', 'format' => 'A4'];
     }
 
     protected function file_path()
