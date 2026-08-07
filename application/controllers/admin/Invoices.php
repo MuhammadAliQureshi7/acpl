@@ -799,4 +799,14 @@ class Invoices extends AdminController
             echo json_encode($duedate);
         }
     }
+    public function get_client_details($clientid)
+    {
+        if ($this->input->is_ajax_request()) {
+            $data = [];
+            if ($clientid) {
+                $client = $this->clients_model->get($clientid);
+            }
+            echo json_encode($client);
+        }
+    }
 }

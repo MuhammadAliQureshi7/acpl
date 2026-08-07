@@ -800,6 +800,7 @@ class warehouse extends AdminController {
 			$data['goods_receipt'] = $goods_receipt;
 			$data['tax_data'] = $this->warehouse_model->get_html_tax_receip($id);
 			$data['total_item'] = count($data['goods_receipt_detail']);
+			$data['total_discount_value'] = (isset($goods_receipt->total_discount) && $goods_receipt->total_discount != '' ? $goods_receipt->total_discount : 0);
 
 			if (count($data['goods_receipt_detail']) > 0) {
 				$index_receipt = 0;
@@ -810,7 +811,7 @@ class warehouse extends AdminController {
 					if(strlen($commodity_name) == 0){
 						$commodity_name = wh_get_item_variatiom($receipt_detail['commodity_code']);
 					}
-					$goods_receipt_row_template .= $this->warehouse_model->create_goods_receipt_invoice_row($warehouse_data, 'items[' . $index_receipt . ']', $commodity_name, $receipt_detail['warehouse_id'], $receipt_detail['quantities'], $unit_name, $receipt_detail['unit_price'], $receipt_detail['tax'], $receipt_detail['tax_rate'], $receipt_detail['tax_money'], $receipt_detail['goods_money'], $receipt_detail['commodity_code'], $receipt_detail['id'], true);
+					$goods_receipt_row_template .= $this->warehouse_model->create_goods_receipt_invoice_row($warehouse_data, 'items[' . $index_receipt . ']', $commodity_name, $receipt_detail['warehouse_id'], $receipt_detail['quantities'], $unit_name, $receipt_detail['unit_price'], $receipt_detail['tax_rate'], $receipt_detail['tax_rate'], $receipt_detail['tax_money'], $receipt_detail['goods_money'], $receipt_detail['commodity_code'], $receipt_detail['id'], true);
 				}
 			}
 
@@ -880,22 +881,29 @@ class warehouse extends AdminController {
 		$warehouse_data = $this->warehouse_model->get_warehouse();
 		$list_item = '';
 		$index = 0;
+		$discount = 0;
 
 		if(is_numeric($pi_id)){
+			$pur_invoice = $this->purchase_model->get_pur_invoice($pi_id);
+			if($pur_invoice && isset($pur_invoice->discount_total) && (float)$pur_invoice->discount_total > 0){
+				$discount = (float)$pur_invoice->discount_total;
+			}
 			$items = $this->purchase_model->get_pur_invoice_detail($pi_id);
 			foreach($items as $item) {
 				$index++;
 				$commodity_name = $item['description'];
 				$qty = $item['qty'];
 				$rate = $item['rate'];
-				$tax_id = $item['tax_id'];
+				$total_tax = $item['total_tax'];
 				$subtotal = $qty * $rate;
 				$tax_rate = 0;
-				if($tax_id) {
-					$tax = $this->purchase_model->get_tax_by_id($tax_id);
-					if($tax) $tax_rate = $tax->taxrate;
+				$tax_money = 0;
+				if(isset($item['total_tax']) && (float)$item['total_tax'] > 0){
+					$tax_money = (float)$item['total_tax'];
+					if((float)$subtotal > 0){
+						$tax_rate = (float)$item['total_tax'] / (float)$subtotal * 100;
+					}
 				}
-				$tax_money = $subtotal * $tax_rate / 100;
 				$goods_money = $subtotal + $tax_money;
 				$unit_name = '';
 				$item_info = $this->purchase_model->get_items_by_id($item['item_code']);
@@ -903,7 +911,7 @@ class warehouse extends AdminController {
 					$unit = $this->purchase_model->get_units_by_id($item_info->unit_id);
 					if($unit) $unit_name = $unit->unit_name;
 				}
-				$list_item .= $this->warehouse_model->create_goods_receipt_invoice_row($warehouse_data, 'items['.$index.']', $commodity_name, '', $qty, $unit_name, $rate, $tax_id, $tax_rate, $tax_money, $goods_money, $item['item_code'], $index, true);
+				$list_item .= $this->warehouse_model->create_goods_receipt_invoice_row($warehouse_data, 'items['.$index.']', $commodity_name, '', $qty, $unit_name, $rate, $total_tax, $tax_rate, $tax_money, $goods_money, $item['item_code'], $index, true);
 			}
 		}
 
@@ -911,7 +919,7 @@ class warehouse extends AdminController {
 			$list_item = '<tr class="main" style="display:none;"><td></td></tr>';
 		}
 
-		echo json_encode(['list_item' => $list_item]);
+		echo json_encode(['list_item' => $list_item, 'discount' => $discount]);
 		die;
 	}
 

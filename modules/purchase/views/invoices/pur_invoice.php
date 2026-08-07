@@ -260,9 +260,9 @@
 														<?php if(isset($itemserials) && count($itemserials) > 0): ?>
 															<?php foreach($itemserials as $serial): ?>
 																<tr>
-																	<td><input type="text" name="serials[<?php echo html_entity_decode($serial['id']); ?>][item_code]" value="<?php echo html_entity_decode($serial['commodity_code']); ?>" class="form-control" readonly></td>
-																	<td><input type="text" name="serials[<?php echo html_entity_decode($serial['id']); ?>][serial_number]" value="<?php echo html_entity_decode($serial['serial_number']); ?>" class="form-control"></td>
-																	<td><button type="button" class="btn btn-sm btn-danger" onclick="pur_delete_serial_row(this); return false;"><i class="fa fa-times"></i></button></td>
+																	<td><input type="text" value="<?php echo html_entity_decode($serial['commodity_code']); ?>" class="form-control serial-item-code" readonly></td>
+																	<td><input type="text" value="<?php echo html_entity_decode($serial['serial_number']); ?>" class="form-control serial-number"></td>
+																	<td><button type="button" class="btn btn-sm btn-danger" onclick="pur_remove_serial_row(0); return false;"><i class="fa fa-times"></i></button></td>
 																</tr>
 															<?php endforeach; ?>
 														<?php endif; ?>

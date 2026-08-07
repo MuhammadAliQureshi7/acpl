@@ -16,13 +16,18 @@ $vendor_no      = '';
 $vendor_name    = '';
 $vendor_address = '';
 $vendor_ntn     = '';
+$vendor_strn    = '';
 
 if ($vendor) {
     $vendor_no      = (isset($vendor->vendor_code) && $vendor->vendor_code != '' ? $vendor->vendor_code : $vendor->userid);
     $vendor_name    = $vendor->company;
     $vendor_address = trim(implode(', ', array_filter([$vendor->address, $vendor->city, $vendor->state])));
     $vendor_ntn     = (isset($vendor->vat) ? $vendor->vat : '');
+    $vendor_strn    = (isset($vendor->strn) ? $vendor->strn : '');
 }
+
+$company_vat  = get_option('company_vat');
+$company_strn = get_option('company_strn');
 
 $pur_invoice_items = $CI->purchase_model->get_pur_invoice_detail($pur_invoice->id);
 
@@ -49,9 +54,9 @@ $html .= '<br />';
 $html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;">';
 $html .= '<tr><td width="22%"><b>Supplier No.</b></td><td width="28%">' . $esc($vendor_no) . '</td><td width="22%"><b>Invoice Date</b></td><td width="28%">' . _d($pur_invoice->invoice_date) . '</td></tr>';
 $html .= '<tr><td><b>Supplier Name</b></td><td>' . $esc($vendor_name) . '</td><td><b>Invoice No.</b></td><td>' . $esc($pur_invoice->invoice_number) . '</td></tr>';
-$html .= '<tr><td><b>Supplier Address</b></td><td>' . $esc($vendor_address) . '</td><td><b>NTN No.</b></td><td></td></tr>';
-$html .= '<tr><td><b>Supplier NTN No.</b></td><td>' . $esc($vendor_ntn) . '</td><td><b>STR No.</b></td><td></td></tr>';
-$html .= '<tr><td><b>Supplier STR No.</b></td><td></td><td></td><td></td></tr>';
+$html .= '<tr><td><b>Supplier Address</b></td><td>' . $esc($vendor_address) . '</td><td><b>NTN No.</b></td><td>' . $esc($company_vat) . '</td></tr>';
+$html .= '<tr><td><b>Supplier NTN No.</b></td><td>' . $esc($vendor_ntn) . '</td><td><b>STR No.</b></td><td>' . $esc($company_strn) . '</td></tr>';
+$html .= '<tr><td><b>Supplier STR No.</b></td><td>' . $esc($vendor_strn) . '</td><td></td><td></td></tr>';
 $html .= '</table>';
 
 $html .= '<br />';

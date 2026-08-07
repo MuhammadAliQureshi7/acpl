@@ -18,8 +18,15 @@ class Migrate extends CI_Controller {
     public function index() {
 
         try {
-            $this->db->query("ALTER TABLE `tblclients` ADD `strn` VARCHAR(255) NOT NULL AFTER `vat`;");
-            $this->db->query("ALTER TABLE `tblpur_vendor` ADD `strn` VARCHAR(255) NOT NULL AFTER `vat`;");
+            if (!$this->db->field_exists('strn', db_prefix() . 'clients')) {
+                $this->db->query("ALTER TABLE `tblclients` ADD `strn` VARCHAR(255) NOT NULL AFTER `vat`;");
+            }
+            if (!$this->db->field_exists('strn', db_prefix() . 'pur_vendor')) {
+                $this->db->query("ALTER TABLE `tblpur_vendor` ADD `strn` VARCHAR(255) NOT NULL AFTER `vat`;");
+            }
+            if (!$this->db->field_exists('total_discount', db_prefix() . 'goods_receipt')) {
+                $this->db->query("ALTER TABLE `tblgoods_receipt` ADD `total_discount` VARCHAR(100) NULL AFTER `total_money`;");
+            }
             echo "Migration completed successfully.\n";
         } catch (Exception $e) {
             // Log server-side only — never expose DB error text in HTTP response.

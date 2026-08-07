@@ -16,6 +16,7 @@ $customer_no      = '';
 $customer_name    = '';
 $customer_address = '';
 $customer_ntn     = '';
+$customer_strn    = '';
 
 if ($client) {
     $customer_no      = $client->userid;
@@ -24,8 +25,12 @@ if ($client) {
     if ($customer_address == '') {
         $customer_address = trim(implode(', ', array_filter([$client->address, $client->city, $client->state])));
     }
-    $customer_ntn = (isset($client->vat) ? $client->vat : '');
+    $customer_ntn  = (isset($client->vat) ? $client->vat : '');
+    $customer_strn = (isset($client->strn) ? $client->strn : '');
 }
+
+$company_vat  = get_option('company_vat');
+$company_strn = get_option('company_strn');
 
 $sales_person = '';
 if (isset($invoice->sale_agent) && $invoice->sale_agent != 0) {
@@ -57,9 +62,9 @@ $html .= '<br />';
 $html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;">';
 $html .= '<tr><td width="22%"><b>Customer No.</b></td><td width="28%">' . $esc($customer_no) . '</td><td width="22%"><b>Invoice Date</b></td><td width="28%">' . _d($invoice->date) . '</td></tr>';
 $html .= '<tr><td><b>Customer Name</b></td><td>' . $esc($customer_name) . '</td><td><b>Invoice No.</b></td><td>' . $esc($invoice_number) . '</td></tr>';
-$html .= '<tr><td><b>Customer Address</b></td><td>' . $esc($customer_address) . '</td><td><b>NTN No.</b></td><td></td></tr>';
-$html .= '<tr><td><b>Customer NTN No.</b></td><td>' . $esc($customer_ntn) . '</td><td><b>STR No.</b></td><td></td></tr>';
-$html .= '<tr><td><b>Customer STR No.</b></td><td></td><td><b>Sales Person</b></td><td>' . $esc($sales_person) . '</td></tr>';
+$html .= '<tr><td><b>Customer Address</b></td><td>' . $esc($customer_address) . '</td><td><b>NTN No.</b></td><td>' . $esc($company_vat) . '</td></tr>';
+$html .= '<tr><td><b>Customer NTN No.</b></td><td>' . $esc($customer_ntn) . '</td><td><b>STR No.</b></td><td>' . $esc($company_strn) . '</td></tr>';
+$html .= '<tr><td><b>Customer STR No.</b></td><td>' . $esc($customer_strn) . '</td><td><b>Sales Person</b></td><td>' . $esc($sales_person) . '</td></tr>';
 $html .= '</table>';
 
 $html .= '<br />';

@@ -5043,7 +5043,7 @@ class Purchase_model extends App_Model
             if (!is_array($pur_invoice_detail)) $pur_invoice_detail = [];
             unset($data['pur_invoice_detail']);
         }
-
+        
         $pi_serial_data = [];
         if (isset($data['pi_serial_data']) && $data['pi_serial_data'] != '' && $data['pi_serial_data'] != '[]') {
             $pi_serial_data = json_decode($data['pi_serial_data'], true);

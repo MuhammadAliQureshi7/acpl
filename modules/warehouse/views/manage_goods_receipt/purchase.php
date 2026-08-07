@@ -91,9 +91,9 @@
 										<th width="15%" align="left"><?php echo _l('warehouse_name'); ?></th>
 										<th width="10%" align="right" class="qty"><?php echo _l('quantity'); ?></th>
 										<th width="10%" align="right"><?php echo _l('unit_price'); ?></th>
+										<th width="10%" align="right"><?php echo _l('amount_exclusive_of_tax'); ?></th>
 										<th width="12%" align="right"><?php echo _l('invoice_table_tax_heading'); ?></th>
-										<th width="10%" align="right"><?php echo _l('subtotal_after_tax'); ?></th>
-										<th width="10%" align="right"><?php echo _l('invoice_table_amount_heading'); ?></th>
+										<th width="10%" align="right"><?php echo _l('amount_inclusive_of_tax'); ?></th>
 										<th align="center"><i class="fa fa-cog"></i></th>
 									</tr>
 								</thead>
@@ -108,6 +108,10 @@
 									<tr id="subtotal">
 										<td><span class="bold"><?php echo _l('total_goods_money'); ?> :</span></td>
 										<td class="wh-subtotal"></td>
+									</tr>
+									<tr id="discount_row">
+										<td><span class="bold"><?php echo _l('discount'); ?> :</span></td>
+										<td><input type="hidden" name="total_discount" value="<?php echo html_entity_decode($total_discount_value); ?>"><span class="wh-discount"></span></td>
 									</tr>
 									<tr id="totalmoney">
 										<td><span class="bold"><?php echo _l('total_money'); ?> :</span></td>

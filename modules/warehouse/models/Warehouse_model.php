@@ -2466,6 +2466,16 @@ class Warehouse_model extends App_Model {
 
 		$data['total_money'] = reformat_currency_j($data['total_money']);
 
+		if(isset($data['total_discount'])){
+
+			$data['total_discount'] = reformat_currency_j($data['total_discount']);
+
+		}else{
+
+			$data['total_discount'] = 0;
+
+		}
+
 
 
 		$this->db->insert(db_prefix() . 'goods_receipt', $data);
@@ -2524,45 +2534,17 @@ class Warehouse_model extends App_Model {
 
 				$tax_money = 0;
 
-				$tax_rate_value = 0;
+				if(isset($inventory_receipt['tax_rate']) && $inventory_receipt['tax_rate'] != '' && $inventory_receipt['tax_rate'] !== null){
 
-				$tax_rate = null;
-
-				$tax_id = null;
-
-				$tax_name = null;
-
-				if(isset($inventory_receipt['tax_select'])){
-
-					$tax_rate_data = $this->wh_get_tax_rate($inventory_receipt['tax_select']);
-
-					$tax_rate_value = $tax_rate_data['tax_rate'];
-
-					$tax_rate = $tax_rate_data['tax_rate_str'];
-
-					$tax_id = $tax_rate_data['tax_id_str'];
-
-					$tax_name = $tax_rate_data['tax_name_str'];
+					$tax_money = (float)$inventory_receipt['tax_rate'];
 
 				}
 
 
 
-				if((float)$tax_rate_value != 0){
+				$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
 
-					$tax_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] * (float)$tax_rate_value / 100;
-
-					$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
-
-					$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
-
-				}else{
-
-					$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'];
-
-					$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'];
-
-				}
+				$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
 
 
 
@@ -2572,15 +2554,15 @@ class Warehouse_model extends App_Model {
 
 				$inventory_receipt['tax_money'] = $tax_money;
 
-				$inventory_receipt['tax'] = $tax_id;
+				$inventory_receipt['tax'] = null;
 
 				$inventory_receipt['goods_money'] = $goods_money;
 
-				$inventory_receipt['tax_rate'] = $tax_rate;
+				$inventory_receipt['tax_rate'] = ($tax_money != 0 ? (string)$tax_money : null);
 
 				$inventory_receipt['sub_total'] = $sub_total;
 
-				$inventory_receipt['tax_name'] = $tax_name;
+				$inventory_receipt['tax_name'] = null;
 
 				unset($inventory_receipt['order']);
 
@@ -5554,6 +5536,12 @@ class Warehouse_model extends App_Model {
 
 		$html .= '<tr>';
 
+		$html .= '<td width="164"><b>GRN Number</b></td><td width="581">' . htmlspecialchars(isset($goods_receipt->goods_receipt_code) ? $goods_receipt->goods_receipt_code : '') . '</td>';
+
+		$html .= '</tr>';
+
+		$html .= '<tr>';
+
 		$html .= '<td width="164"><b>Supplier No.</b></td><td width="581">' . htmlspecialchars($supplier_no) . '</td>';
 
 		$html .= '</tr>';
@@ -6796,6 +6784,9 @@ class Warehouse_model extends App_Model {
 
 		$html .= '<br />';
 		$html .= '<table width="745" cellspacing="0" style="font-size:18px;">';
+		$html .= '<tr>';
+		$html .= '<td width="164"><b>DC Number</b></td><td width="581">' . htmlspecialchars(isset($goods_delivery->goods_delivery_code) ? $goods_delivery->goods_delivery_code : '') . '</td>';
+		$html .= '</tr>';
 		$html .= '<tr>';
 		$html .= '<td width="164"><b>Customer No.</b></td><td width="581">' . htmlspecialchars($customer_no) . '</td>';
 		$html .= '</tr>';
@@ -13777,6 +13768,16 @@ class Warehouse_model extends App_Model {
 
 		$data['total_money'] = reformat_currency_j($data['total_money']);
 
+		if(isset($data['total_discount'])){
+
+			$data['total_discount'] = reformat_currency_j($data['total_discount']);
+
+		}else{
+
+			$data['total_discount'] = 0;
+
+		}
+
 
 
 		$goods_receipt_id = $data['id'];
@@ -13833,45 +13834,17 @@ class Warehouse_model extends App_Model {
 
 			$tax_money = 0;
 
-			$tax_rate_value = 0;
+			if(isset($inventory_receipt['tax_rate']) && $inventory_receipt['tax_rate'] != '' && $inventory_receipt['tax_rate'] !== null){
 
-			$tax_rate = null;
-
-			$tax_id = null;
-
-			$tax_name = null;
-
-			if(isset($inventory_receipt['tax_select'])){
-
-				$tax_rate_data = $this->wh_get_tax_rate($inventory_receipt['tax_select']);
-
-				$tax_rate_value = $tax_rate_data['tax_rate'];
-
-				$tax_rate = $tax_rate_data['tax_rate_str'];
-
-				$tax_id = $tax_rate_data['tax_id_str'];
-
-				$tax_name = $tax_rate_data['tax_name_str'];
+				$tax_money = (float)$inventory_receipt['tax_rate'];
 
 			}
 
 
 
-			if((float)$tax_rate_value != 0){
+			$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
 
-				$tax_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] * (float)$tax_rate_value / 100;
-
-				$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
-
-				$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
-
-			}else{
-
-				$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'];
-
-				$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'];
-
-			}
+			$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
 
 
 
@@ -13881,15 +13854,15 @@ class Warehouse_model extends App_Model {
 
 			$inventory_receipt['tax_money'] = $tax_money;
 
-			$inventory_receipt['tax'] = $tax_id;
+			$inventory_receipt['tax'] = null;
 
 			$inventory_receipt['goods_money'] = $goods_money;
 
-			$inventory_receipt['tax_rate'] = $tax_rate;
+			$inventory_receipt['tax_rate'] = ($tax_money != 0 ? (string)$tax_money : null);
 
 			$inventory_receipt['sub_total'] = $sub_total;
 
-			$inventory_receipt['tax_name'] = $tax_name;
+			$inventory_receipt['tax_name'] = null;
 
 			unset($inventory_receipt['order']);
 
@@ -13957,45 +13930,17 @@ class Warehouse_model extends App_Model {
 
 			$tax_money = 0;
 
-			$tax_rate_value = 0;
+			if(isset($inventory_receipt['tax_rate']) && $inventory_receipt['tax_rate'] != '' && $inventory_receipt['tax_rate'] !== null){
 
-			$tax_rate = null;
-
-			$tax_id = null;
-
-			$tax_name = null;
-
-			if(isset($inventory_receipt['tax_select'])){
-
-				$tax_rate_data = $this->wh_get_tax_rate($inventory_receipt['tax_select']);
-
-				$tax_rate_value = $tax_rate_data['tax_rate'];
-
-				$tax_rate = $tax_rate_data['tax_rate_str'];
-
-				$tax_id = $tax_rate_data['tax_id_str'];
-
-				$tax_name = $tax_rate_data['tax_name_str'];
+				$tax_money = (float)$inventory_receipt['tax_rate'];
 
 			}
 
 
 
-			if((float)$tax_rate_value != 0){
+			$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
 
-				$tax_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] * (float)$tax_rate_value / 100;
-
-				$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
-
-				$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
-
-			}else{
-
-				$goods_money = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'];
-
-				$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'];
-
-			}
+			$amount = (float)$inventory_receipt['unit_price'] * (float)$inventory_receipt['quantities'] + (float)$tax_money;
 
 
 
@@ -14005,15 +13950,15 @@ class Warehouse_model extends App_Model {
 
 			$inventory_receipt['tax_money'] = $tax_money;
 
-			$inventory_receipt['tax'] = $tax_id;
+			$inventory_receipt['tax'] = null;
 
 			$inventory_receipt['goods_money'] = $goods_money;
 
-			$inventory_receipt['tax_rate'] = $tax_rate;
+			$inventory_receipt['tax_rate'] = ($tax_money != 0 ? (string)$tax_money : null);
 
 			$inventory_receipt['sub_total'] = $sub_total;
 
-			$inventory_receipt['tax_name'] = $tax_name;
+			$inventory_receipt['tax_name'] = null;
 
 			unset($inventory_receipt['order']);
 
@@ -27753,52 +27698,17 @@ class Warehouse_model extends App_Model {
 
 
 
-			$tax_money = 0;
-
-			$tax_rate_value = 0;
+			$tax_money = (float)$tax_money;
 
 
 
-			if($is_edit){
-
-				$invoice_item_taxes = wh_convert_item_taxes($tax_id, $tax_rate, $tax_name);
-
-				$arr_tax_rate = explode('|', $tax_rate);
-
-				foreach ($arr_tax_rate as $key => $value) {
-
-					$tax_rate_value += (float)$value;
-
-				}
-
-			}else{
-
-				$invoice_item_taxes = $taxname;
-
-				$tax_rate_data = $this->wh_get_tax_rate($taxname);
-
-				$tax_rate_value = $tax_rate_data['tax_rate'];
-
-			}
 
 
 
-			if((float)$tax_rate_value != 0){
 
-				$tax_money = (float)$unit_price * (float)$quantities * (float)$tax_rate_value / 100;
+			$goods_money = (float)$unit_price * (float)$quantities + (float)$tax_money;
 
-				$goods_money = (float)$unit_price * (float)$quantities + (float)$tax_money;
-
-				$amount = (float)$unit_price * (float)$quantities + (float)$tax_money;
-
-			}else{
-
-				$goods_money = (float)$unit_price * (float)$quantities;
-
-				$amount = (float)$unit_price * (float)$quantities;
-
-			}
-
+			$amount = (float)$unit_price * (float)$quantities + (float)$tax_money;
 
 
 			$sub_total = (float)$unit_price * (float)$quantities;
@@ -27837,7 +27747,7 @@ class Warehouse_model extends App_Model {
 
 		$row .= '<td class="rate">' . render_input($name_unit_price, '', $unit_price, 'number', $array_rate_attr) . '</td>';
 
-		$row .= '<td class="taxrate">' . $this->get_taxes_dropdown_template($name_tax_id_select, $invoice_item_taxes, 'invoice', $item_key, true, $manual) . '</td>';
+		$row .= '<td class="taxrate">' . render_input($name_tax_rate, '', $tax_money, 'number', ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0', 'step' => 'any', 'placeholder' => _l('tax_rate')]) . '</td>';
 
 		$row .= '<td>' . render_input($name_lot_number, '', $lot_number, 'text', ['placeholder' => _l('lot_number')]) . '</td>';
 
@@ -27845,7 +27755,9 @@ class Warehouse_model extends App_Model {
 
 		$row .= '<td>' . render_date_input($name_expiry_date, '', $expiry_date, ['placeholder' => _l('expiry_date')]) . '</td>';
 
-		$row .= '<td class="amount" align="right">' . $amount . '</td>';
+		$row .= '<td class="amount_after_tax" align="right">' . app_format_number($amount) . '</td>';
+
+		$row .= '<td class="amount" align="right">' . app_format_number($sub_total) . '</td>';
 
 
 
@@ -31777,7 +31689,7 @@ class Warehouse_model extends App_Model {
 
 	 */
 
-	public function create_goods_receipt_invoice_row($warehouse_data, $name, $commodity_name, $warehouse_id, $quantities, $unit_name, $unit_price, $tax_id, $tax_rate, $tax_money, $goods_money, $commodity_code, $item_key = '', $is_edit = false) {
+	public function create_goods_receipt_invoice_row($warehouse_data, $name, $commodity_name, $warehouse_id, $quantities, $unit_name, $unit_price, $total_tax, $tax_rate, $tax_money, $goods_money, $commodity_code, $item_key = '', $is_edit = false) {
 
 		$new_name = str_replace('items[', 'newitems[', $name);
 
@@ -31792,16 +31704,11 @@ class Warehouse_model extends App_Model {
 		$row .= '<td class="quantities">' . render_input($new_name . '[quantities]', '', $quantities, 'number', ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0', 'step' => 'any', 'data-quantity' => (float)$quantities], [], 'no-margin') . render_input($new_name . '[unit_name]', '', $unit_name, 'text', ['readonly' => true], [], 'no-margin', 'input-transparent text-right wh_input_none') . '</td>';
 
 		$row .= '<td class="rate">' . render_input($new_name . '[unit_price]', '', $unit_price, 'number', ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0', 'step' => 'any', 'placeholder' => _l('unit_price')]) . '</td>';
-
-		$tax_dropdown = $this->get_taxes_dropdown_template($new_name . '[tax_select][]', $tax_id, 'invoice', $item_key, true, false);
-
-		$tax_dropdown = str_replace('class="selectpicker', 'class="selectpicker taxes', $tax_dropdown);
-
-		$row .= '<td class="taxrate">' . $tax_dropdown . '</td>';
-
+		$sub_total = (float)$quantities * (float)$unit_price;
+		$row .= '<td class="amount" align="right">' . app_format_number($sub_total) . '</td>';
+		$row .= '<td class="taxrate">' . render_input($new_name . '[tax_rate]', '', $total_tax, 'number', ['onblur' => 'wh_calculate_total();', 'onchange' => 'wh_calculate_total();', 'min' => '0.0', 'step' => 'any', 'placeholder' => _l('tax_rate')]) . '</td>';
 		$row .= '<td class="amount_after_tax" align="right">' . app_format_number($goods_money) . '</td>';
 
-		$row .= '<td class="amount" align="right">' . app_format_number($goods_money) . '</td>';
 
 		$row .= '<td><a href="#" class="btn btn-danger pull-left" onclick="wh_delete_item(this,' . $item_key . '); return false;"><i class="fa fa-trash"></i></a></td>';
 

@@ -55,7 +55,7 @@ function numberWithCommas(x) {
 // Items auto-load from purchase invoice selection
 
 // Recaulciate total on these changes
-$("body").on('change', 'select.taxes', function () {
+$("body").on('change', '.taxrate input', function () {
 	wh_calculate_total();
 });
 
@@ -79,6 +79,10 @@ $('select[name="pur_invoice_id"]').on('change', function() {
 			if(response){
 				$('.invoice-item table.invoice-items-table.items tbody').html('');
 				$('.invoice-item table.invoice-items-table.items tbody').append(response.list_item);
+
+				if (response.discount !== undefined && response.discount !== null) {
+					$('input[name="total_discount"]').val(response.discount);
+				}
 
 				setTimeout(function () {
 					wh_calculate_total();
@@ -128,15 +132,15 @@ function wh_add_item_to_preview(id) {
 			$('.selectpicker').selectpicker('refresh');
 		}
 
-		var taxSelectedArray = [];
-		if (response.taxname && response.taxrate) {
-			taxSelectedArray.push(response.taxname + '|' + response.taxrate);
-		}
-		if (response.taxname_2 && response.taxrate_2) {
-			taxSelectedArray.push(response.taxname_2 + '|' + response.taxrate_2);
+		var itemTaxRate = 0;
+		if (response.taxrate) {
+			itemTaxRate = parseFloat(response.taxrate);
+			if (isNaN(itemTaxRate)) {
+				itemTaxRate = 0;
+			}
 		}
 
-		$('.main select.taxes').selectpicker('val', taxSelectedArray);
+		$('.main input[name="tax_rate"]').val(itemTaxRate);
 		$('.main input[name="unit"]').val(response.unit_name);
 
 		var $currency = $("body").find('.accounting-template select[name="currency"]');
@@ -207,13 +211,12 @@ function wh_get_item_preview_values() {
 	response.quantities = $('.invoice-item .main input[name="quantities"]').val();
 	response.unit_name = $('.invoice-item .main input[name="unit_name"]').val();
 	response.unit_price = $('.invoice-item .main input[name="unit_price"]').val();
-	response.taxname = $('.main select.taxes').selectpicker('val');
+	response.tax_rate = $('.invoice-item .main input[name="tax_rate"]').val();
 	response.lot_number = $('.invoice-item .main input[name="lot_number"]').val();
 	response.date_manufacture = $('.invoice-item .main input[name="date_manufacture"]').val();
 	response.expiry_date = $('.invoice-item .main input[name="expiry_date"]').val();
 	response.commodity_code = $('.invoice-item .main input[name="commodity_code"]').val();
 	response.unit_id = $('.invoice-item .main input[name="unit_id"]').val();
-	response.tax_rate = $('.invoice-item .main input[name="tax_rate"]').val();
 	response.tax_money = $('.invoice-item .main input[name="tax_money"]').val();
 	response.goods_money = $('.invoice-item .main input[name="goods_money"]').val();
 	response.note = $('.invoice-item .main input[name="note"]').val();
@@ -296,6 +299,8 @@ function wh_calculate_total(){
 	var calculated_tax,
 		taxrate,
 		item_taxes,
+		item_tax_rate,
+		discount,
 		row,
 		_amount,
 		_tax_name,
@@ -333,59 +338,39 @@ function wh_calculate_total(){
 
 		subtotal += _amount;
 		row = $(this);
-		item_taxes = $(this).find('select.taxes').val();
+		item_tax_rate = parseFloat($(this).find('td.taxrate input').val());
 
-		if (item_taxes) {
-			$.each(item_taxes, function (i, taxname) {
-				taxrate = row.find('select.taxes [value="' + taxname + '"]').data('taxrate');
-				calculated_tax = (_amount / 100 * taxrate);
-				if (!taxes.hasOwnProperty(taxname)) {
-					if (taxrate != 0) {
-						_tax_name = taxname.split('|');
-						var tax_row = '<tr class="wh-tax-area"><td>' + _tax_name[0] + '(' + taxrate + '%)</td><td id="tax_id_' + slugify(taxname) + '"></td></tr>';
-						$(subtotal_area).after(tax_row);
-						taxes[taxname] = calculated_tax;
-					}
-				} else {
-                    // Increment total from this tax
-                    taxes[taxname] = taxes[taxname] += calculated_tax;
-                }
-            });
+		if (isNaN(item_tax_rate)) {
+			item_tax_rate = 0;
+		}
+
+		calculated_tax = item_tax_rate;
+
+		$(this).find('td.amount_after_tax').html(format_money(_amount + calculated_tax, true));
+
+		if (item_tax_rate != 0) {
+			var tax_key = 'tax';
+			if (!taxes.hasOwnProperty(tax_key)) {
+				taxes[tax_key] = calculated_tax;
+			} else {
+				// Increment total from this tax
+				taxes[tax_key] = taxes[tax_key] += calculated_tax;
+			}
 		}
 	});
-
-	// Discount by percent
-	if ((discount_percent !== '' && discount_percent != 0) && discount_type == 'before_tax' && discount_total_type.hasClass('discount-type-percent')) {
-		total_discount_calculated = (subtotal * discount_percent) / 100;
-	} else if ((discount_fixed !== '' && discount_fixed != 0) && discount_type == 'before_tax' && discount_total_type.hasClass('discount-type-fixed')) {
-		total_discount_calculated = discount_fixed;
-	}
 
 	$.each(taxes, function (taxname, total_tax) {
-		if ((discount_percent !== '' && discount_percent != 0) && discount_type == 'before_tax' && discount_total_type.hasClass('discount-type-percent')) {
-			total_tax_calculated = (total_tax * discount_percent) / 100;
-			total_tax = (total_tax - total_tax_calculated);
-		} else if ((discount_fixed !== '' && discount_fixed != 0) && discount_type == 'before_tax' && discount_total_type.hasClass('discount-type-fixed')) {
-			var t = (discount_fixed / subtotal) * 100;
-			total_tax = (total_tax - (total_tax * t) / 100);
-		}
-
-		total += total_tax;
 		total_tax_money += total_tax;
-		total_tax = format_money(total_tax);
-		$('#tax_id_' + slugify(taxname)).html(total_tax);
 	});
 
-	total = (total + subtotal);
-
-	// Discount by percent
-	if ((discount_percent !== '' && discount_percent != 0) && discount_type == 'after_tax' && discount_total_type.hasClass('discount-type-percent')) {
-		total_discount_calculated = (total * discount_percent) / 100;
-	} else if ((discount_fixed !== '' && discount_fixed != 0) && discount_type == 'after_tax' && discount_total_type.hasClass('discount-type-fixed')) {
-		total_discount_calculated = discount_fixed;
+	discount = parseFloat($('input[name="total_discount"]').val());
+	if (isNaN(discount)) {
+		discount = 0;
 	}
 
-	total = total - total_discount_calculated;
+	$('.wh-discount').html(format_money(discount));
+
+	total = (subtotal + total_tax_money) - discount;
 	adjustment = parseFloat(adjustment);
 
 	// Check if adjustment not empty
@@ -393,11 +378,7 @@ function wh_calculate_total(){
 		total = total + adjustment;
 	}
 
-	var discount_html = '-' + format_money(total_discount_calculated);
-    $('input[name="discount_total"]').val(accounting.toFixed(total_discount_calculated, app.options.decimal_places));
-
 	// Append, format to html and display
-	$('.discount-total').html(discount_html);
 	$('.adjustment').html(format_money(adjustment));
 	$('.wh-subtotal').html(format_money(subtotal) + hidden_input('total_goods_money', accounting.toFixed(subtotal, app.options.decimal_places)) + hidden_input('value_of_inventory', accounting.toFixed(subtotal, app.options.decimal_places)));
 

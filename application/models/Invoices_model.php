@@ -388,6 +388,7 @@ class Invoices_model extends App_Model
         $data  = $hook['data'];
         $items = $hook['items'];
         unset($data['tax_percent']);
+        unset($data['strn']);
         $this->db->insert(db_prefix() . 'invoices', $data);
         $insert_id = $this->db->insert_id();
         if ($insert_id) {

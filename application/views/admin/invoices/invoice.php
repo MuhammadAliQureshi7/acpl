@@ -150,6 +150,17 @@ function update_due_date() {
         });
     }       
 }
+function get_client_details() {
+    var clientid = $('select[name="clientid"]').val();
+    if (clientid) {
+        requestGetJSON('invoices/get_client_details/' + clientid).done(function(response) {
+            if (response) {
+                $('input[name="strn"]').val(response.strn);
+            }
+        });
+    }
+    update_due_date()
+}
 </script>
 </body>
 
