@@ -11,6 +11,7 @@
     <?php echo render_input('settings[invoice_company_postal_code]', 'settings_sales_postal_code', get_option('invoice_company_postal_code')); ?>
     <?php echo render_input('settings[invoice_company_phonenumber]', 'settings_sales_phonenumber', get_option('invoice_company_phonenumber')); ?>
     <?php echo render_input('settings[company_vat]', 'company_vat_number', get_option('company_vat')); ?>
+    <?php echo render_input('settings[company_strn]', 'company_strn', get_option('company_strn')); ?>
     <?php echo render_custom_fields('company', 0); ?>
     <hr />
     <?php echo render_textarea('settings[company_info_format]', 'company_info_format', clear_textarea_breaks(get_option('company_info_format')), ['rows' => 8, 'style' => 'line-height:20px;']); ?>

@@ -3700,6 +3700,7 @@ class purchase extends AdminController
             $data['pur_invoice'] = $this->purchase_model->get_pur_invoice($id);
             $data['pur_invoice_items'] = $this->purchase_model->get_pur_invoice_detail($id);
             $data['pur_invoice_detail'] = json_encode($data['pur_invoice_items']);
+            $data['itemserials'] = $this->purchase_model->get_item_serials($id);
         }
         $data['contracts'] = $this->purchase_model->get_contract();
         $data['taxes'] = $this->purchase_model->get_taxes();
@@ -4724,6 +4725,11 @@ class purchase extends AdminController
     public function get_available_serials($item_code){
         $serials = $this->purchase_model->get_available_serials($item_code);
         echo json_encode(['serials' => $serials]);
+        die;
+    }
+    public function get_vendor_details($vendor_id){
+        $vendor = $this->purchase_model->get_vendor($vendor_id);
+        echo json_encode($vendor);
         die;
     }
 }

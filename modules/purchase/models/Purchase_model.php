@@ -4886,7 +4886,7 @@ class Purchase_model extends App_Model
         if (isset($data['rate'])) unset($data['rate']);
         if (isset($data['taxname'])) unset($data['taxname']);
         if (isset($data['items'])) unset($data['items']);
-        if (isset($data['pi_serial_data'])) unset($data['pi_serial_data']);
+        // if (isset($data['pi_serial_data'])) unset($data['pi_serial_data']);
         
 
         $data['add_from'] = get_staff_user_id();
@@ -4917,7 +4917,7 @@ class Purchase_model extends App_Model
             $tags = $data['tags'];
             unset($data['tags']);
         }
-
+        unset($data['strn']);
         $pur_invoice_detail = [];
         if (isset($data['pur_invoice_detail'])) {
             $pur_invoice_detail = json_decode($data['pur_invoice_detail'], true);
@@ -5036,7 +5036,7 @@ class Purchase_model extends App_Model
             }
             unset($data['tags']);
         }
-
+        unset($data['strn']);
         $pur_invoice_detail = array();
         if (isset($data['pur_invoice_detail'])) {
             $pur_invoice_detail = json_decode($data['pur_invoice_detail'], true);
@@ -5048,9 +5048,9 @@ class Purchase_model extends App_Model
         if (isset($data['pi_serial_data']) && $data['pi_serial_data'] != '' && $data['pi_serial_data'] != '[]') {
             $pi_serial_data = json_decode($data['pi_serial_data'], true);
             if (!is_array($pi_serial_data)) $pi_serial_data = [];
-            unset($data['pi_serial_data']);
+            
         }
-
+        unset($data['pi_serial_data']);
         $this->db->where('id',$id);
         $this->db->update(db_prefix().'pur_invoices',$data);
 
@@ -5125,6 +5125,7 @@ class Purchase_model extends App_Model
     public function get_pur_invoice($id = ''){
         if($id != ''){
             $this->db->where('id',$id);
+            $this->db->join(db_prefix(). 'pur_vendor', db_prefix().'pur_vendor.userid = '.db_prefix().'pur_invoices.vendor','left');
             return $this->db->get(db_prefix().'pur_invoices')->row();
         }else{
             return $this->db->get(db_prefix().'pur_invoices')->result_array();
@@ -5799,5 +5800,10 @@ class Purchase_model extends App_Model
             'si_id' => $si_id,
             'updated_at' => $now
         ]);
+    }
+    public function get_item_serials($pi_id) {
+        $this->db->join(db_prefix() . 'items', db_prefix() . 'items.id = ' . db_prefix() . 'itemserials.item_id', 'left');
+        $this->db->where('pi_id', $pi_id);
+        return $this->db->get(db_prefix() . 'itemserials')->result_array();
     }
 }

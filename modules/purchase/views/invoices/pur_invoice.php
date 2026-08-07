@@ -59,9 +59,14 @@
 	            <div class="col-md-6">
 	                <div class="col-md-12 pad_left_0 pad_right_0">
 	                	<?php $vendor_note = ( isset($pur_invoice) ? $pur_invoice->vendor_note : '');
-	                	echo render_textarea('vendor_note','vendor_note',$vendor_note) ?>
+	                	echo render_textarea('vendor_note','invoice_description',$vendor_note) ?>
 	                </div>
+					
+					<?php $strn = ( isset($pur_invoice) ? $pur_invoice->strn : '');
+					echo render_input('strn','company_strn',$strn ,'text',array('readonly' => '')); ?>
+	                
 	            </div>
+
 
             </div>
 
@@ -133,7 +138,7 @@
             					<input type="hidden" name="items[<?php echo html_entity_decode($i); ?>][item_code]" value="<?php echo html_entity_decode($item['item_code']); ?>">
             				</td>
             				<td>
-            					<input type="text" class="form-control item_code_display" value="<?php echo html_entity_decode($item['item_code']); ?>" disabled>
+            					<input type="text" class="form-control item_code_display" value="<?php echo html_entity_decode($item['item_commodity_code']); ?>" disabled>
             				</td>
             				<td class="bold description">
             					<textarea name="items[<?php echo html_entity_decode($i); ?>][description]" class="form-control" rows="2" readonly><?php echo html_entity_decode($item['description']); ?></textarea>
@@ -146,7 +151,7 @@
             				</td>
             				<td class="amount" align="right"><?php echo app_format_money($amount, ''); ?></td>
             				<td class="taxrate">
-            					<input type="number" name="items[<?php echo html_entity_decode($i); ?>][tax_percent]" class="form-control tax-input" min="0" max="100" step="0.01" value="<?php echo html_entity_decode($item['tax_rate'] ?? 0); ?>">
+            					<input type="number" name="items[<?php echo html_entity_decode($i); ?>][total_tax]" class="form-control tax-input" min="0" step="0.01" value="<?php echo html_entity_decode($item['total_tax'] ?? 0); ?>">
             				</td>
             				<td class="amount_after_tax" align="right"><?php echo app_format_money($item['amount_after_tax'], ''); ?></td>
             				<td>
@@ -245,13 +250,22 @@
             								</div>
             							</div>
             							<div class="col-md-8">
-            								<h5><?php echo _l('uploaded_serials'); ?>: <span id="serial_count_display">0</span> <button type="button" class="btn btn-sm btn-success" onclick="pur_add_serial_row(); return false;"><i class="fa fa-plus"></i></button> <button type="button" class="btn btn-sm btn-danger" onclick="pur_clear_serials(); return false;"><i class="fa fa-trash"></i></button></h5>
+            								<h5><?php echo _l('uploaded_serials'); ?>: <span id="serial_count_display"><?php echo isset($itemserials) ? count($itemserials) : 0; ?></span> <button type="button" class="btn btn-sm btn-success" onclick="pur_add_serial_row(); return false;"><i class="fa fa-plus"></i></button> <button type="button" class="btn btn-sm btn-danger" onclick="pur_clear_serials(); return false;"><i class="fa fa-trash"></i></button></h5>
             								<div class="table-responsive" style="max-height:250px; overflow-y:auto;">
             									<table class="table table-bordered table-condensed" id="serial_preview_table">
             										<thead>
             											<tr><th width="40%"><?php echo _l('commodity_code'); ?></th><th width="50%"><?php echo _l('serial_number'); ?></th><th width="10%"></th></tr>
             										</thead>
             										<tbody>
+														<?php if(isset($itemserials) && count($itemserials) > 0): ?>
+															<?php foreach($itemserials as $serial): ?>
+																<tr>
+																	<td><input type="text" name="serials[<?php echo html_entity_decode($serial['id']); ?>][item_code]" value="<?php echo html_entity_decode($serial['commodity_code']); ?>" class="form-control" readonly></td>
+																	<td><input type="text" name="serials[<?php echo html_entity_decode($serial['id']); ?>][serial_number]" value="<?php echo html_entity_decode($serial['serial_number']); ?>" class="form-control"></td>
+																	<td><button type="button" class="btn btn-sm btn-danger" onclick="pur_delete_serial_row(this); return false;"><i class="fa fa-times"></i></button></td>
+																</tr>
+															<?php endforeach; ?>
+														<?php endif; ?>
             										</tbody>
             									</table>
             								</div>

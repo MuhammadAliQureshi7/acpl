@@ -87,9 +87,11 @@
                         <div id="company_exists_info" class="hide"></div>
                         <?php hooks()->do_action('after_customer_profile_company_field', $client ?? null); ?>
                         <?php if (get_option('company_requires_vat_number_field') == 1) {
-                      $value = (isset($client) ? $client->vat : '');
-                      echo render_input('vat', 'client_vat_number', $value);
-                  } ?>
+                            $value = (isset($client) ? $client->vat : '');
+                            echo render_input('vat', 'client_vat_number', $value);
+                        } ?>
+                        <?php $value = (isset($client) ? $client->strn : '');
+                            echo render_input('strn', 'company_strn', $value);?>
                         <?php hooks()->do_action('before_customer_profile_phone_field', $client ?? null); ?>
                         <?php $value = (isset($client) ? $client->phonenumber : ''); ?>
                         <?php echo render_input('phonenumber', 'client_phonenumber', $value); ?>

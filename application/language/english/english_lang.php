@@ -3929,3 +3929,5 @@ $lang['no_filters_found'] = 'No saved filters, get started by creating a new fil
 
 $lang['staff_logged_in_public_ticket_warning'] = 'You are logged in a staff member, if you want to reply to the ticket as staff, you must make reply via the admin area.';
 $lang['credit_days'] = 'Credit Days';
+$lang['company_strn'] = 'STRN';
+$lang['invoice_description'] = 'Description';

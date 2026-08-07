@@ -412,6 +412,22 @@ $(document).on('change keyup', '#serial_preview_table input', function() {
   "use strict";
   pur_sync_serial_data();
 });
+$('body').on('change', '#vendor', function() {
+  "use strict";
+  var vendorId = $(this).val();
+  if(vendorId != '') {
+    $.post(admin_url + 'purchase/get_vendor_details/' + vendorId).done(function(response) {
+      response = JSON.parse(response);
+      if(response.strn) {
+        $('input[name="strn"]').val(response.strn);
+      } else {
+        $('input[name="strn"]').val('');
+      }
+    });
+  } else {
+    $('input[name="strn"]').val('');
+  }
 
+});
 </script>
 </script>

@@ -70,6 +70,8 @@
                      $value=( isset($client) ? $client->vat : '');
                      echo render_input( 'vat', 'client_vat_number',$value);
                      } ?>
+                  <?php $value=( isset($client) ? $client->strn : '');
+                     echo render_input( 'strn', 'company_strn',$value); ?>
                   <?php $value=( isset($client) ? $client->phonenumber : ''); ?>
                   <?php echo render_input( 'phonenumber', 'client_phonenumber',$value); ?>
                   <?php if((isset($client) && empty($client->website)) || !isset($client)){

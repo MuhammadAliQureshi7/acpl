@@ -18,7 +18,8 @@ class Migrate extends CI_Controller {
     public function index() {
 
         try {
-            $this->db->query("ALTER TABLE `tblitemable` ADD `total_tax` DECIMAL(15,2) NOT NULL AFTER `tax_id`;");
+            $this->db->query("ALTER TABLE `tblclients` ADD `strn` VARCHAR(255) NOT NULL AFTER `vat`;");
+            $this->db->query("ALTER TABLE `tblpur_vendor` ADD `strn` VARCHAR(255) NOT NULL AFTER `vat`;");
             echo "Migration completed successfully.\n";
         } catch (Exception $e) {
             // Log server-side only — never expose DB error text in HTTP response.
