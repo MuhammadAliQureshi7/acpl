@@ -222,13 +222,13 @@
 	         						<?php if(isset($pur_invoice_items) && count($pur_invoice_items) > 0){ ?>
 	         						<?php foreach($pur_invoice_items as $item){ 
 	         							$item_info = $this->purchase_model->get_items_by_id($item['item_code']);
-	         							$tax_name = '';
-	         							if($item['tax_id'] && $item['tax_id'] != ''){
-	         								$tax = $this->purchase_model->get_tax_by_id($item['tax_id']);
-	         								if($tax){
-	         									$tax_name = $tax->label . ' (' . $tax->taxrate . '%)';
-	         								}
-	         							}
+	         							// $tax_name = '';
+	         							// if($item['tax_id'] && $item['tax_id'] != ''){
+	         							// 	$tax = $this->purchase_model->get_tax_by_id($item['tax_id']);
+	         							// 	if($tax){
+	         							// 		$tax_name = $tax->label . ' (' . $tax->taxrate . '%)';
+	         							// 	}
+	         							// }
 	         						?>
 	         						<tr>
 	         							<td><?php echo html_entity_decode($item_info && isset($item_info->commodity_code) ? $item_info->commodity_code : $item['item_code']); ?></td>
@@ -236,7 +236,7 @@
 	         							<td><?php echo html_entity_decode($item['qty']); ?></td>
 	         							<td><?php echo app_format_money($item['rate'],''); ?></td>
 	         							<td><?php echo app_format_money($item['qty'] * $item['rate'],''); ?></td>
-	         							<td><?php echo html_entity_decode($tax_name); ?></td>
+	         							<td><?php echo app_format_money($item['total_tax'],''); ?></td>
 	         							<td><?php echo app_format_money($item['amount_after_tax'],''); ?></td>
 	         						</tr>
 	         						<?php } ?>

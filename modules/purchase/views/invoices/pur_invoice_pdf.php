@@ -69,7 +69,7 @@ $html .= '<td width="21%">Product Name</td>';
 $html .= '<td width="8%">Qty</td>';
 $html .= '<td width="12%">Rate/Unit</td>';
 $html .= '<td width="17%">Total Amount<br />Excluding Tax</td>';
-$html .= '<td width="8%">GST<br />Rate</td>';
+$html .= '<td width="8%">Tax</td>';
 $html .= '<td width="18%">Value Inclusive<br />of Sales Tax</td>';
 $html .= '</tr></table>';
 $html .= '<hr width="100%" color="#000000" size="0.4" />';
@@ -79,7 +79,7 @@ if (count($pur_invoice_items) > 0) {
         $item_code = (isset($item['item_commodity_code']) && $item['item_commodity_code'] != '' ? $item['item_commodity_code'] : (isset($item['item_code']) ? $item['item_code'] : ''));
         $subtotal  = floatval($item['qty']) * floatval($item['rate']);
         $row_tax   = floatval($item['total_tax']);
-        $gst_rate  = ($subtotal > 0 && $row_tax > 0) ? rtrim(rtrim(number_format(($row_tax / $subtotal) * 100, 2), '0'), '.') . '%' : '';
+        // $gst_rate  = ($subtotal > 0 && $row_tax > 0) ? rtrim(rtrim(number_format(($row_tax / $subtotal) * 100, 2), '0'), '.') . '%' : '';
 
         $html .= '<table width="100%" cellpadding="5" cellspacing="0" style="font-size:18px;"><tr>';
         $html .= '<td width="16%" align="center">' . $esc($item_code) . '</td>';
@@ -87,7 +87,7 @@ if (count($pur_invoice_items) > 0) {
         $html .= '<td width="8%" align="center">' . $item['qty'] . '</td>';
         $html .= '<td width="12%" align="right">' . app_format_money($item['rate'], '') . '</td>';
         $html .= '<td width="17%" align="right">' . app_format_money($subtotal, '') . '</td>';
-        $html .= '<td width="8%" align="center">' . $gst_rate . '</td>';
+        $html .= '<td width="8%" align="center">' . $row_tax . '</td>';
         $html .= '<td width="18%" align="right">' . app_format_money($item['amount_after_tax'], '') . '</td>';
         $html .= '</tr></table>';
         $html .= '<hr width="100%" color="#000000" size="0.2" />';
