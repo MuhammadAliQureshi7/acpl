@@ -5532,7 +5532,7 @@ class Warehouse_model extends App_Model {
 
 		$html .= '<br />';
 
-		$html .= '<table width="745" cellspacing="0" style="font-size:18px;">';
+		$html .= '<table width="745" cellspacing="0" style="font-size:14px;">';
 
 		$html .= '<tr>';
 
@@ -5580,7 +5580,7 @@ class Warehouse_model extends App_Model {
 
 
 
-		$html .= '<table width="745" cellspacing="0" style="font-size:18px;">';
+		$html .= '<table width="745" cellspacing="0" style="font-size:13px;">';
 
 		$html .= '<tr style="font-weight:bold;text-align:center;">';
 
@@ -5662,13 +5662,13 @@ class Warehouse_model extends App_Model {
 
 				$html .= '<table width="745" cellspacing="0" style="font-size:18px;"><tr>';
 
-				$html .= '<td width="179" align="center">' . htmlspecialchars($commodity_code) . '</td>';
+				$html .= '<td width="179" align="center" style="font-size:12px;">' . htmlspecialchars($commodity_code) . '</td>';
 
-				$html .= '<td width="216">' . htmlspecialchars($commodity_name) . '</td>';
+				$html .= '<td width="216" style="font-size:12px;">' . htmlspecialchars($commodity_name) . '</td>';
 
-				$html .= '<td width="179" align="center">' . $quantities . '</td>';
+				$html .= '<td width="179" align="center" style="font-size:12px;">' . $quantities . '</td>';
 
-				$html .= '<td width="171" align="center">' . htmlspecialchars($serial_no) . '</td>';
+				$html .= '<td width="171" align="center" style="font-size:12px;">' . htmlspecialchars($serial_no) . '</td>';
 
 				$html .= '</tr></table>';
 
