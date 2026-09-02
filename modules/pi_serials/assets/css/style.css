@@ -1,0 +1,7 @@
+#pi_serials_table th {
+    white-space: nowrap;
+}
+
+#serial_preview_table input {
+    min-width: 120px;
+}
