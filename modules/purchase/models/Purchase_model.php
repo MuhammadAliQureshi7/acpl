@@ -4877,6 +4877,7 @@ class Purchase_model extends App_Model
     // }
     public function add_pur_invoice($data)
     {
+        
         if (isset($data['item_select'])) unset($data['item_select']);
         if (isset($data['item_code'])) unset($data['item_code']);
         if (isset($data['item_code_display'])) unset($data['item_code_display']);
@@ -4886,8 +4887,11 @@ class Purchase_model extends App_Model
         if (isset($data['rate'])) unset($data['rate']);
         if (isset($data['taxname'])) unset($data['taxname']);
         if (isset($data['items'])) unset($data['items']);
-        // if (isset($data['pi_serial_data'])) unset($data['pi_serial_data']);
-        
+        if (isset($data['pi_serial_data'])){
+            $serials = $data['pi_serial_data'];
+            unset($data['pi_serial_data']);
+        } 
+        // dd($data);
 
         $data['add_from'] = get_staff_user_id();
         $data['date_add'] = date('Y-m-d');
@@ -4925,10 +4929,9 @@ class Purchase_model extends App_Model
         }
 
         $pi_serial_data = [];
-        if (isset($data['pi_serial_data']) && $data['pi_serial_data'] != '' && $data['pi_serial_data'] != '[]') {
-            $pi_serial_data = json_decode($data['pi_serial_data'], true);
-            if (!is_array($pi_serial_data)) $pi_serial_data = [];
-            unset($data['pi_serial_data']);
+        if (isset($serials) && $serials != '' && $serials != '[]') {
+            $pi_serial_data = json_decode($serials, true);
+            if (!is_array($pi_serial_data)) $pi_serial_data = [];            
         }
 
         $this->db->insert(db_prefix().'pur_invoices', $data);
