@@ -1976,6 +1976,8 @@ class purchase extends AdminController
         }
         $data['title'] = _l('purchase_reports');
         $data['items'] = $this->purchase_model->get_items();
+        $data['vendors'] = $this->purchase_model->get_vendor();
+        $data['principles'] = $this->purchase_model->get_item_group();
         $this->load->view('reports/manage_report',$data);
     }
 
@@ -3667,6 +3669,77 @@ class purchase extends AdminController
             echo json_encode($output);
             die();
         }
+    }
+
+    /**
+     * Purchase report grouped by vendor (detail lines + sub group totals)
+     * Filter: report_months / report_from / report_to, vendor
+     */
+    public function purchase_vendorwise_report()
+    {
+        if ($this->input->is_ajax_request()) {
+            echo $this->purchase_detail_grouped_report('vendor');
+            die();
+        }
+    }
+
+    /**
+     * Purchase report grouped by item (detail lines + sub group totals)
+     * Filter: report_months / report_from / report_to, item
+     */
+    public function purchase_itemwise_report()
+    {
+        if ($this->input->is_ajax_request()) {
+            echo $this->purchase_detail_grouped_report('item');
+            die();
+        }
+    }
+
+    /**
+     * Purchase report grouped by item group/principle (detail lines + sub group totals)
+     * Filter: report_months / report_from / report_to, principle
+     */
+    public function purchase_principleswise_report()
+    {
+        if ($this->input->is_ajax_request()) {
+            echo $this->purchase_detail_grouped_report('principle');
+            die();
+        }
+    }
+
+    /**
+     * Shared builder for the purchase detail reports.
+     *
+     * @param string $group_by vendor | item | principle
+     */
+    private function purchase_detail_grouped_report($group_by)
+    {
+        $this->load->model('currencies_model');
+        $currency = $this->currencies_model->get_base_currency();
+
+        $where = [
+            'AND ' . db_prefix() . 'itemable.rel_type = "pur_invoice"',
+            'AND ' . db_prefix() . 'pur_invoices.vendor IS NOT NULL',
+        ];
+
+        $custom_date_select = $this->get_where_report_period(db_prefix() . 'pur_invoices.invoice_date');
+        if ($custom_date_select != '') {
+            $where[] = $custom_date_select;
+        }
+
+        if ($this->input->post('report_vendor')) {
+            $where[] = 'AND ' . db_prefix() . 'pur_invoices.vendor = ' . (int) $this->input->post('report_vendor');
+        }
+        if ($this->input->post('report_item')) {
+            $where[] = 'AND COALESCE(' . db_prefix() . 'items.id, items_desc.id) = ' . (int) $this->input->post('report_item');
+        }
+        if ($this->input->post('report_principle')) {
+            $where[] = 'AND COALESCE(' . db_prefix() . 'items.group_id, items_desc.group_id) = ' . (int) $this->input->post('report_principle');
+        }
+
+        $rows = $this->purchase_model->get_purchase_detail_rows($where);
+
+        return $this->purchase_model->build_purchase_detail_report_html($rows, $group_by, $currency);
     }
 
     /**

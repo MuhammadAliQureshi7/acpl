@@ -99,6 +99,42 @@
                             <?php echo _l('report_sales_type_customer'); ?>
                         </a>
                     </li>
+                    <li>
+                        <a href="#"
+                            class="group tw-font-medium tw-px-3 tw-py-3 tw-text-neutral-500 hover:tw-text-neutral-800 active:tw-text-neutral-800 focus:tw-text-neutral-800 hover:tw-bg-neutral-200 tw-w-full tw-inline-flex tw-items-center tw-rounded-md data-[active=true]:tw-bg-neutral-200 data-[active=true]:tw-text-neutral-800"
+                            onclick="init_report(this,'sales-customerswise-report'); return false;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor"
+                                class="tw-w-5 tw-h-5 tw-mr-2.5 tw-text-neutral-500 group-hover:tw-text-neutral-800">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                            <?php echo _l('report_sales_customer_wise'); ?>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="group tw-font-medium tw-px-3 tw-py-3 tw-text-neutral-500 hover:tw-text-neutral-800 active:tw-text-neutral-800 focus:tw-text-neutral-800 hover:tw-bg-neutral-200 tw-w-full tw-inline-flex tw-items-center tw-rounded-md data-[active=true]:tw-bg-neutral-200 data-[active=true]:tw-text-neutral-800"
+                            onclick="init_report(this,'sales-itemswise-report'); return false;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor"
+                                class="tw-w-5 tw-h-5 tw-mr-2.5 tw-text-neutral-500 group-hover:tw-text-neutral-800">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                            <?php echo _l('report_sales_item_wise'); ?>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="group tw-font-medium tw-px-3 tw-py-3 tw-text-neutral-500 hover:tw-text-neutral-800 active:tw-text-neutral-800 focus:tw-text-neutral-800 hover:tw-bg-neutral-200 tw-w-full tw-inline-flex tw-items-center tw-rounded-md data-[active=true]:tw-bg-neutral-200 data-[active=true]:tw-text-neutral-800"
+                            onclick="init_report(this,'sales-principleswise-report'); return false;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor"
+                                class="tw-w-5 tw-h-5 tw-mr-2.5 tw-text-neutral-500 group-hover:tw-text-neutral-800">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                            <?php echo _l('report_sales_principle_wise'); ?>
+                        </a>
+                    </li>
                 </ul>
             </div>
             <div class="sm:tw-border-r sm:tw-border-solid sm:tw-border-neutral-200 tw-pr-10 tw-w-96">
@@ -154,23 +190,24 @@
             </div>
             <div class="tw-flex-1 tw-max-w-md">
                 <?php if (isset($currencies)) { ?>
-                <div id="currency" class="form-group hide">
-                    <label for="currency"><i class="fa-regular fa-circle-question" data-toggle="tooltip"
-                            title="<?php echo _l('report_sales_base_currency_select_explanation'); ?>"></i>
-                        <?php echo _l('currency'); ?></label><br />
-                    <select class="selectpicker" name="currency" data-width="100%"
-                        data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>">
-                        <?php foreach ($currencies as $currency) {
-    $selected = '';
-    if ($currency['isdefault'] == 1) {
-        $selected = 'selected';
-    } ?>
-                        <option value="<?php echo $currency['id']; ?>" <?php echo $selected; ?>>
-                            <?php echo $currency['name']; ?></option>
-                        <?php
-} ?>
-                    </select>
-                </div>
+                    <div id="currency" class="form-group hide">
+                        <label for="currency"><i class="fa-regular fa-circle-question" data-toggle="tooltip"
+                                title="<?php echo _l('report_sales_base_currency_select_explanation'); ?>"></i>
+                            <?php echo _l('currency'); ?></label><br />
+                        <select class="selectpicker" name="currency" data-width="100%"
+                            data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>">
+                            <?php foreach ($currencies as $currency) {
+                                $selected = '';
+                                if ($currency['isdefault'] == 1) {
+                                    $selected = 'selected';
+                                } ?>
+                                <option value="<?php echo $currency['id']; ?>" <?php echo $selected; ?>>
+                                    <?php echo $currency['name']; ?>
+                                </option>
+                                <?php
+                            } ?>
+                        </select>
+                    </div>
                 <?php } ?>
                 <div id="income-years" class="hide mbot15">
                     <label for="payments_years"><?php echo _l('year'); ?></label><br />
@@ -178,11 +215,11 @@
                         onchange="total_income_bar_report();"
                         data-none-selected-text="<?php echo _l('dropdown_non_selected_tex'); ?>">
                         <?php foreach ($payments_years as $year) { ?>
-                        <option value="<?php echo $year['year']; ?>" <?php if ($year['year'] == date('Y')) {
-        echo 'selected';
-    } ?>>
-                            <?php echo $year['year']; ?>
-                        </option>
+                            <option value="<?php echo $year['year']; ?>" <?php if ($year['year'] == date('Y')) {
+                                   echo 'selected';
+                               } ?>>
+                                <?php echo $year['year']; ?>
+                            </option>
                         <?php } ?>
                     </select>
                 </div>
@@ -198,14 +235,44 @@
                         <option value="last_year"><?php echo _l('last_year'); ?></option>
                         <option value="3"
                             data-subtext="<?php echo _d(date('Y-m-01', strtotime('-2 MONTH'))); ?> - <?php echo _d(date('Y-m-t')); ?>">
-                            <?php echo _l('report_sales_months_three_months'); ?></option>
+                            <?php echo _l('report_sales_months_three_months'); ?>
+                        </option>
                         <option value="6"
                             data-subtext="<?php echo _d(date('Y-m-01', strtotime('-5 MONTH'))); ?> - <?php echo _d(date('Y-m-t')); ?>">
-                            <?php echo _l('report_sales_months_six_months'); ?></option>
+                            <?php echo _l('report_sales_months_six_months'); ?>
+                        </option>
                         <option value="12"
                             data-subtext="<?php echo _d(date('Y-m-01', strtotime('-11 MONTH'))); ?> - <?php echo _d(date('Y-m-t')); ?>">
-                            <?php echo _l('report_sales_months_twelve_months'); ?></option>
+                            <?php echo _l('report_sales_months_twelve_months'); ?>
+                        </option>
                         <option value="custom"><?php echo _l('period_datepicker'); ?></option>
+                    </select>
+                </div>
+                <div class="hide mbot15" id="customers">
+                    <label for="customer" class="control-label"><?php echo _l('customer'); ?></label>
+                    <select name="customer" id="customer" class="form-control selectpicker" data-live-search="true">
+                        <option value=""><?php echo _l('report_all_customers'); ?></option>
+                        <?php foreach ($customers as $customer) { ?>
+                            <option value="<?php echo $customer['userid']; ?>"><?php echo $customer['company']; ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="hide mbot15" id="items-filter">
+                    <label for="report-item" class="control-label"><?php echo _l('report_item'); ?></label>
+                    <select name="report-item" id="report-item" class="form-control selectpicker" data-live-search="true">
+                        <option value=""><?php echo _l('report_all_items'); ?></option>
+                        <?php foreach ($sales_report_items as $item) { ?>
+                            <option value="<?php echo $item['id']; ?>"><?php echo html_entity_decode($item['description']); ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="hide mbot15" id="principles-filter">
+                    <label for="report-principle" class="control-label"><?php echo _l('report_principle'); ?></label>
+                    <select name="report-principle" id="report-principle" class="form-control selectpicker" data-live-search="true">
+                        <option value=""><?php echo _l('report_all_principles'); ?></option>
+                        <?php foreach ($sales_report_principles as $principle) { ?>
+                            <option value="<?php echo $principle['id']; ?>"><?php echo html_entity_decode($principle['name']); ?></option>
+                        <?php } ?>
                     </select>
                 </div>
                 <div id="date-range" class="hide mbot15">
@@ -236,10 +303,10 @@
             </div>
         </div>
         <?php if (total_rows(db_prefix() . 'invoices', ['status' => 5]) > 0) { ?>
-        <p class="text-danger tw-my-3">
-            <i class="fa-solid fa-circle-exclamation tw-mr-1" aria-hidden="true"></i>
-            <?php echo _l('sales_report_cancelled_invoices_not_included'); ?>
-        </p>
+            <p class="text-danger tw-my-3">
+                <i class="fa-solid fa-circle-exclamation tw-mr-1" aria-hidden="true"></i>
+                <?php echo _l('sales_report_cancelled_invoices_not_included'); ?>
+            </p>
         <?php } ?>
         <div class="row">
             <div class="col-md-12 hide" id="report">
@@ -252,6 +319,9 @@
                         <?php $this->load->view('admin/reports/includes/sales_payment_modes'); ?>
                         <?php $this->load->view('admin/reports/includes/sales_customers_groups'); ?>
                         <?php $this->load->view('admin/reports/includes/sales_customers'); ?>
+                        <?php $this->load->view('admin/reports/includes/sales_customerswise'); ?>
+                        <?php $this->load->view('admin/reports/includes/sales_itemswise'); ?>
+                        <?php $this->load->view('admin/reports/includes/sales_principleswise'); ?>
                         <?php $this->load->view('admin/reports/includes/sales_invoices'); ?>
                         <?php $this->load->view('admin/reports/includes/sales_credit_notes'); ?>
                         <?php $this->load->view('admin/reports/includes/sales_items'); ?>

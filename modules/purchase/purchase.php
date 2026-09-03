@@ -178,13 +178,13 @@ function purchase_module_init_menu_items()
             'position' => 9,
         ]);
 
-        $CI->app_menu->add_sidebar_children_item('purchase', [
-            'slug'     => 'purchase_reports',
-            'name'     => _l('reports'),
-            'icon'     => 'fa fa-bar-chart',
-            'href'     => admin_url('purchase/reports'),
-            'position' => 9,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('purchase', [
+        //     'slug'     => 'purchase_reports',
+        //     'name'     => _l('reports'),
+        //     'icon'     => 'fa fa-bar-chart',
+        //     'href'     => admin_url('purchase/reports'),
+        //     'position' => 9,
+        // ]);
 
         $CI->app_menu->add_sidebar_children_item('purchase', [
             'slug'     => 'purchase-settings',

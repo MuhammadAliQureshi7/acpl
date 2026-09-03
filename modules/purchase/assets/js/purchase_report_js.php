@@ -1,6 +1,7 @@
 <script>
 var report_import_goods, report_po_voucher,
 report_from_choose, report_po, report_pur_inv,
+report_pur_vendorwise, report_pur_itemwise, report_pur_principleswise,
 fnServerParams, 
 statistics_number_of_purchase_orders, 
 statistics_cost_of_purchase_orders;
@@ -13,6 +14,9 @@ statistics_cost_of_purchase_orders;
   report_po = $('#list_po_report');
   report_po_voucher = $('#list_po_voucher');
   report_import_goods = $('#list_import_goods');
+  report_pur_vendorwise = $('#purchase_vendorwise_report');
+  report_pur_itemwise = $('#purchase_itemwise_report');
+  report_pur_principleswise = $('#purchase_principleswise_report');
   statistics_number_of_purchase_orders = $('#number-purchase-orders-report');
   statistics_cost_of_purchase_orders = $('#cost-purchase-orders-report');
   report_from_choose = $('#report-time');
@@ -25,6 +29,10 @@ statistics_cost_of_purchase_orders;
   }
   
   $('select[name="products_services"]').on('change', function() {
+    gen_reports();
+  });
+
+  $('#report_vendor,#report_item,#report_principle').on('change', function() {
     gen_reports();
   });
 
@@ -124,8 +132,16 @@ statistics_cost_of_purchase_orders;
    report_po_voucher.addClass('hide');
    report_pur_inv.addClass('hide');
    report_import_goods.addClass('hide');
+   report_pur_vendorwise.addClass('hide');
+   report_pur_itemwise.addClass('hide');
+   report_pur_principleswise.addClass('hide');
   statistics_cost_of_purchase_orders.addClass('hide');
   statistics_number_of_purchase_orders.addClass('hide');
+
+  $('#report-filters').addClass('hide');
+  $('#report_vendor_filter').addClass('hide');
+  $('#report_item_filter').addClass('hide');
+  $('#report_principle_filter').addClass('hide');
 
   $('select[name="months-report"]').selectpicker('val', 'this_month');
     // Clear custom date picker
@@ -142,6 +158,18 @@ statistics_cost_of_purchase_orders;
       }else if(type == 'statistics_cost_of_purchase_orders'){
         statistics_cost_of_purchase_orders.removeClass('hide');
         $('#year_requisition').removeClass('hide');
+      }else if(type == 'purchase_vendorwise_report'){
+        report_pur_vendorwise.removeClass('hide');
+        $('#report-filters').removeClass('hide');
+        $('#report_vendor_filter').removeClass('hide');
+      }else if(type == 'purchase_itemwise_report'){
+        report_pur_itemwise.removeClass('hide');
+        $('#report-filters').removeClass('hide');
+        $('#report_item_filter').removeClass('hide');
+      }else if(type == 'purchase_principleswise_report'){
+        report_pur_principleswise.removeClass('hide');
+        $('#report-filters').removeClass('hide');
+        $('#report_principle_filter').removeClass('hide');
       }else if(type == 'po_voucher_report'){
         report_po_voucher.removeClass('hide');
       }else if(type == 'po_report'){
@@ -186,8 +214,60 @@ function purchase_inv_report() {
 
  if ($.fn.DataTable.isDataTable('.table-purchase-inv-report')) {
    $('.table-purchase-inv-report').DataTable().destroy();
- }
+  }
  initDataTable('.table-purchase-inv-report', admin_url + 'purchase/purchase_inv_report', false, false, fnServerParams);
+}
+
+function purchase_detail_report(type) {
+  "use strict";
+
+  var url = 'purchase/purchase_vendorwise_report';
+  var contentSel = '#purchase_vendorwise_report_content';
+  if (type == 'itemwise') {
+    url = 'purchase/purchase_itemwise_report';
+    contentSel = '#purchase_itemwise_report_content';
+  } else if (type == 'principleswise') {
+    url = 'purchase/purchase_principleswise_report';
+    contentSel = '#purchase_principleswise_report_content';
+  }
+  var data = {
+    report_months: $('select[name="months-report"]').val(),
+    report_from: report_from.val(),
+    report_to: report_to.val()
+  };
+  if (type == 'vendorwise') {
+    data.report_vendor = $('#report_vendor').val();
+  } else if (type == 'itemwise') {
+    data.report_item = $('#report_item').val();
+  } else if (type == 'principleswise') {
+    data.report_principle = $('#report_principle').val();
+  }
+  $.post(admin_url + url, data).done(function(response) {
+    $(contentSel).html(response);
+  });
+}
+
+function purchase_detail_print(type) {
+  "use strict";
+
+  var contentSel = '#purchase_vendorwise_report_content';
+  if (type == 'itemwise') {
+    contentSel = '#purchase_itemwise_report_content';
+  } else if (type == 'principleswise') {
+    contentSel = '#purchase_principleswise_report_content';
+  }
+  var printContents = $(contentSel).html();
+  if (!printContents || !$.trim(printContents)) {
+    alert("<?php echo _l('report_generate_first'); ?>");
+    return false;
+  }
+  var w = window.open('', '_blank');
+  w.document.write('<html><head><title></title></head><body>');
+  w.document.write(printContents);
+  w.document.write('</body></html>');
+  w.document.close();
+  w.print();
+  return false;
 }
 
 
@@ -351,17 +431,23 @@ function gen_reports() {
 
  if (!report_import_goods.hasClass('hide')) {
    import_goods_report();
- }else if (!statistics_number_of_purchase_orders.hasClass('hide')) {
+  }else if (!statistics_number_of_purchase_orders.hasClass('hide')) {
     number_of_purchase_orders_analysis();
- }else if (!statistics_cost_of_purchase_orders.hasClass('hide')) {
+  }else if (!statistics_cost_of_purchase_orders.hasClass('hide')) {
     cost_of_purchase_orders_analysis();
- }else if(!report_po_voucher.hasClass('hide')){
+  }else if(!report_pur_vendorwise.hasClass('hide')){
+    purchase_detail_report('vendorwise');
+  }else if(!report_pur_itemwise.hasClass('hide')){
+    purchase_detail_report('itemwise');
+  }else if(!report_pur_principleswise.hasClass('hide')){
+    purchase_detail_report('principleswise');
+  }else if(!report_po_voucher.hasClass('hide')){
     po_voucher_report();
- }else if(!report_po.hasClass('hide')){
+  }else if(!report_po.hasClass('hide')){
     po_report();
- }else if(!report_pur_inv.hasClass('hide')){
+  }else if(!report_pur_inv.hasClass('hide')){
     purchase_inv_report();
- }
+  }
 }
 </script>
 

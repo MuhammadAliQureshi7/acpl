@@ -5584,13 +5584,12 @@ class Warehouse_model extends App_Model {
 
 		$html .= '<tr style="font-weight:bold;text-align:center;">';
 
-		$html .= '<td width="179">Code</td>';
+		$html .= '<td width="150">Code</td>';
 
 		$html .= '<td width="216">Product Name</td>';
 
-		$html .= '<td width="179">Qty</td>';
-
-		$html .= '<td width="171">Serial No.</td>';
+		$html .= '<td width="50">Qty</td>';
+		$html .= '<td width="350">Serial No.</td>';
 
 		$html .= '</tr>';
 
@@ -5662,13 +5661,13 @@ class Warehouse_model extends App_Model {
 
 				$html .= '<table width="745" cellspacing="0" style="font-size:18px;"><tr>';
 
-				$html .= '<td width="179" align="center" style="font-size:12px;">' . htmlspecialchars($commodity_code) . '</td>';
+				$html .= '<td width="150" align="center" style="font-size:12px;">' . htmlspecialchars($commodity_code) . '</td>';
 
 				$html .= '<td width="216" style="font-size:12px;">' . htmlspecialchars($commodity_name) . '</td>';
 
-				$html .= '<td width="179" align="center" style="font-size:12px;">' . $quantities . '</td>';
+				$html .= '<td width="50" align="center" style="font-size:12px;">' . $quantities . '</td>';
 
-				$html .= '<td width="171" align="center" style="font-size:12px;">' . htmlspecialchars($serial_no) . '</td>';
+				$html .= '<td width="350" align="center" style="font-size:12px;">' . htmlspecialchars($serial_no) . '</td>';
 
 				$html .= '</tr></table>';
 

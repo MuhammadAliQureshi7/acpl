@@ -360,15 +360,15 @@ function accounting_module_init_menu_items() {
 			]);
 		}
 
-		if (has_permission('accounting_report', '', 'view')) {
-			$CI->app_menu->add_sidebar_children_item('accounting', [
-				'slug' => 'accounting_report',
-				'name' => _l('accounting_report'),
-				'icon' => 'fa fa-area-chart',
-				'href' => admin_url('accounting/report'),
-				'position' => 8,
-			]);
-		}
+		// if (has_permission('accounting_report', '', 'view')) {
+		// 	$CI->app_menu->add_sidebar_children_item('accounting', [
+		// 		'slug' => 'accounting_report',
+		// 		'name' => _l('accounting_report'),
+		// 		'icon' => 'fa fa-area-chart',
+		// 		'href' => admin_url('accounting/report'),
+		// 		'position' => 8,
+		// 	]);
+		// }
 
 		if (has_permission('accounting_setting', '', 'view')) {
 			$CI->app_menu->add_sidebar_children_item('accounting', [

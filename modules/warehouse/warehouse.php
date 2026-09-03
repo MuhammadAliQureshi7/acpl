@@ -276,13 +276,13 @@ function warehouse_module_init_menu_items()
             'position' => 8,
         ]);
 
-        $CI->app_menu->add_sidebar_children_item('warehouse', [
-            'slug'     => 'wa_report',
-            'name'     => _l('report'),
-            'icon'     => 'fa fa-area-chart menu-icon',
-            'href'     => admin_url('warehouse/manage_report'),
-            'position' => 8,
-        ]);
+        // $CI->app_menu->add_sidebar_children_item('warehouse', [
+        //     'slug'     => 'wa_report',
+        //     'name'     => _l('report'),
+        //     'icon'     => 'fa fa-area-chart menu-icon',
+        //     'href'     => admin_url('warehouse/manage_report'),
+        //     'position' => 8,
+        // ]);
         
 
         $CI->app_menu->add_sidebar_children_item('warehouse', [

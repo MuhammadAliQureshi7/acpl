@@ -310,31 +310,54 @@ function app_init_admin_sidebar_menu_items()
             'badge'    => [],
         ]);
         $CI->app_menu->add_sidebar_children_item('reports', [
+            'slug'     => 'purchase_reports',
+            'name'     => _l('purchase'),            
+            'href'     => admin_url('purchase/reports'),
+            'position' => 6,
+            'badge'    => [],
+        ]);
+         $CI->app_menu->add_sidebar_children_item('reports', [
+            'slug'     => 'wa_report',
+            'name'     => _l('Stock'),            
+            'href'     => admin_url('warehouse/manage_report'),
+            'position' => 7,
+            'badge'    => [],
+        ]);
+        if (has_permission('accounting_report', '', 'view')) {
+			$CI->app_menu->add_sidebar_children_item('reports', [
+				'slug' => 'accounting_report',
+				'name' => _l('Accounting'),			
+				'href' => admin_url('accounting/report'),
+				'position' => 8,
+                'badge'    => [],
+			]);
+		}
+        $CI->app_menu->add_sidebar_children_item('reports', [
             'slug'     => 'expenses-reports',
             'name'     => _l('als_reports_expenses'),
             'href'     => admin_url('reports/expenses'),
-            'position' => 10,
+            'position' => 9,
             'badge'    => [],
         ]);
         $CI->app_menu->add_sidebar_children_item('reports', [
             'slug'     => 'expenses-vs-income-reports',
             'name'     => _l('als_expenses_vs_income'),
             'href'     => admin_url('reports/expenses_vs_income'),
-            'position' => 15,
+            'position' => 10,
             'badge'    => [],
         ]);
         $CI->app_menu->add_sidebar_children_item('reports', [
             'slug'     => 'leads-reports',
             'name'     => _l('als_reports_leads_submenu'),
             'href'     => admin_url('reports/leads'),
-            'position' => 20,
+            'position' => 11,
             'badge'    => [],
         ]);
         $CI->app_menu->add_sidebar_children_item('reports', [
             'slug'     => 'knowledge-base-reports',
             'name'     => _l('als_kb_articles_submenu'),
             'href'     => admin_url('reports/knowledge_base_articles'),
-            'position' => 30,
+            'position' => 12,
             'badge'    => [],
         ]);
     }

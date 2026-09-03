@@ -12,6 +12,12 @@
 	                      <hr />
 	                      <p><a href="#" class="font-medium" onclick="init_report(this,'list_import_goods'); return false;"><i class="fa fa-caret-down" aria-hidden="true"></i> <?php echo _l('cost_of_import_goods_for_each_item'); ?></a></p>
 	                      <hr class="hr-10" />
+	                      <p><a href="#" class="font-medium" onclick="init_report(this,'purchase_vendorwise_report'); return false;"><i class="fa fa-caret-down" aria-hidden="true"></i> <?php echo _l('report_purchase_vendor_wise'); ?></a></p>
+	                      <hr class="hr-10" />
+	                      <p><a href="#" class="font-medium" onclick="init_report(this,'purchase_itemwise_report'); return false;"><i class="fa fa-caret-down" aria-hidden="true"></i> <?php echo _l('report_purchase_item_wise'); ?></a></p>
+	                      <hr class="hr-10" />
+	                      <p><a href="#" class="font-medium" onclick="init_report(this,'purchase_principleswise_report'); return false;"><i class="fa fa-caret-down" aria-hidden="true"></i> <?php echo _l('report_purchase_principle_wise'); ?></a></p>
+	                      <hr class="hr-10" />
 	                      <p><a href="#" class="font-medium" onclick="init_report(this,'po_voucher_report'); return false;"><i class="fa fa-caret-down" aria-hidden="true"></i> <?php echo _l('po_voucher_report'); ?></a></p>
 	                      <hr class="hr-10" />
 	                      <p><a href="#" class="font-medium" onclick="init_report(this,'po_report'); return false;"><i class="fa fa-caret-down" aria-hidden="true"></i> <?php echo _l('po_report'); ?></a></p>
@@ -42,7 +48,36 @@
 		                           <option value="custom"><?php echo _l('period_datepicker'); ?></option>
 		                        </select>
 		                     </div>
-		                     <div id="date-range" class="hide mbot15">
+		                     <div id="report-filters" class="hide mbot15">
+	                        <div class="form-group" id="report_vendor_filter">
+	                           <label for="report_vendor"><?php echo _l('report_vendor'); ?></label>
+	                           <select name="report_vendor" id="report_vendor" class="selectpicker" data-live-search="true" data-width="100%" data-none-selected-text="<?php echo _l('report_all_vendors'); ?>">
+	                              <option value=""><?php echo _l('report_all_vendors'); ?></option>
+	                              <?php foreach($vendors as $vendor){ ?>
+	                                 <option value="<?php echo html_entity_decode($vendor['userid']); ?>"><?php echo html_entity_decode($vendor['company']); ?></option>
+	                              <?php } ?>
+	                           </select>
+	                        </div>
+	                        <div class="form-group hide" id="report_item_filter">
+	                           <label for="report_item"><?php echo _l('report_item'); ?></label>
+	                           <select name="report_item" id="report_item" class="selectpicker" data-live-search="true" data-width="100%" data-none-selected-text="<?php echo _l('report_all_items'); ?>">
+	                              <option value=""><?php echo _l('report_all_items'); ?></option>
+	                              <?php foreach($items as $item){ ?>
+	                                 <option value="<?php echo html_entity_decode($item['id']); ?>"><?php echo html_entity_decode($item['label']); ?></option>
+	                              <?php } ?>
+	                           </select>
+	                        </div>
+	                        <div class="form-group hide" id="report_principle_filter">
+	                           <label for="report_principle"><?php echo _l('report_principle'); ?></label>
+	                           <select name="report_principle" id="report_principle" class="selectpicker" data-live-search="true" data-width="100%" data-none-selected-text="<?php echo _l('report_all_principles'); ?>">
+	                              <option value=""><?php echo _l('report_all_principles'); ?></option>
+	                              <?php foreach($principles as $principle){ ?>
+	                                 <option value="<?php echo html_entity_decode($principle['id']); ?>"><?php echo html_entity_decode($principle['label']); ?></option>
+	                              <?php } ?>
+	                           </select>
+	                        </div>
+	                     </div>
+	                     <div id="date-range" class="hide mbot15">
 		                        <div class="row">
 		                           <div class="col-md-6">
 		                              <label for="report-from" class="control-label"><?php echo _l('report_sales_from_date'); ?></label>
@@ -109,7 +144,16 @@
 			          		<?php $this->load->view('po_report'); ?>
 			          	</div>
 			          	<div class="col-md-12">
-			          		<?php $this->load->view('purchase_inv_report'); ?>
+			          	<?php $this->load->view('purchase_vendorwise_report'); ?>
+			          	</div>
+			          	<div class="col-md-12">
+			          	<?php $this->load->view('purchase_itemwise_report'); ?>
+			          	</div>
+			          	<div class="col-md-12">
+			          	<?php $this->load->view('purchase_principleswise_report'); ?>
+			          	</div>
+			          	<div class="col-md-12">
+			          	<?php $this->load->view('purchase_inv_report'); ?>
 			          	</div>
 		            </div>
 	            </div>      

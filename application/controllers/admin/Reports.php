@@ -90,6 +90,13 @@ class Reports extends AdminController
         $data['proposal_taxes']    = $this->distinct_taxes('proposal');
         $data['credit_note_taxes'] = $this->distinct_taxes('credit_note');
 
+        $this->load->model('clients_model');
+        $data['customers'] = $this->clients_model->get();
+
+        // Item principles (tblitems_groups) for the "principle wise" reports
+        $data['sales_report_principles'] = $this->reports_model->get_sales_report_principles();
+        $data['sales_report_items']      = $this->reports_model->get_sales_report_items();
+
         $data['title'] = _l('sales_reports');
         $this->load->view('admin/reports/sales', $data);
     }
@@ -167,6 +174,77 @@ class Reports extends AdminController
             echo json_encode($output);
             die();
         }
+    }
+
+    /**
+     * Sales report grouped by customer (detail lines + sub group totals)
+     * Filter: report_months / report_from / report_to, customer
+     */
+    public function sales_customerswise_report()
+    {
+        if ($this->input->is_ajax_request()) {
+            echo $this->sales_detail_grouped_report('customer');
+            die();
+        }
+    }
+
+    /**
+     * Sales report grouped by item (detail lines + sub group totals)
+     * Filter: report_months / report_from / report_to, item
+     */
+    public function sales_itemswise_report()
+    {
+        if ($this->input->is_ajax_request()) {
+            echo $this->sales_detail_grouped_report('item');
+            die();
+        }
+    }
+
+    /**
+     * Sales report grouped by item group/principle (detail lines + sub group totals)
+     * Filter: report_months / report_from / report_to, principle
+     */
+    public function sales_principleswise_report()
+    {
+        if ($this->input->is_ajax_request()) {
+            echo $this->sales_detail_grouped_report('principle');
+            die();
+        }
+    }
+
+    /**
+     * Shared builder for the sales detail reports.
+     *
+     * @param string $group_by customer | item | principle
+     */
+    private function sales_detail_grouped_report($group_by)
+    {
+        $this->load->model('currencies_model');
+        $currency = $this->currencies_model->get_base_currency();
+
+        $where = [
+            'AND ' . db_prefix() . 'itemable.rel_type = "invoice"',
+            'AND ' . db_prefix() . 'invoices.status != 5',
+        ];
+
+        $custom_date_select = $this->get_where_report_period(db_prefix() . 'invoices.date');
+        if ($custom_date_select != '') {
+            $where[] = $custom_date_select;
+        }
+
+        if ($this->input->post('report_customer')) {
+            $where[] = 'AND ' . db_prefix() . 'invoices.clientid = ' . (int) $this->input->post('report_customer');
+        }
+        if ($this->input->post('report_item')) {
+            $where[] = 'AND COALESCE(' . db_prefix() . 'items.id, items_desc.id) = ' . (int) $this->input->post('report_item');
+        }
+        if ($this->input->post('report_principle')) {
+            $where[] = 'AND COALESCE(' . db_prefix() . 'items.group_id, items_desc.group_id) = ' . (int) $this->input->post('report_principle');
+        }
+
+        $rows = $this->reports_model->get_sales_detail_rows($where);
+
+        return $this->reports_model->build_sales_detail_report_html($rows, $group_by, $currency);
     }
 
     public function payments_received()

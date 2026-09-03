@@ -627,4 +627,171 @@ class Reports_model extends App_Model
 
         return $refunds_amount;
     }
+
+    /**
+     * Item principles (tblitems_groups) used by the principle wise reports
+     * @return array
+     */
+    public function get_sales_report_principles()
+    {
+        return $this->db->query('SELECT id, name FROM ' . db_prefix() . 'items_groups ORDER BY name ASC')->result_array();
+    }
+
+    /**
+     * Items used by the item wise report dropdown
+     * @return array
+     */
+    public function get_sales_report_items()
+    {
+        return $this->db->query('SELECT id, description, commodity_code FROM ' . db_prefix() . 'items WHERE active = 1 ORDER BY description ASC')->result_array();
+    }
+
+    /**
+     * Detail rows for the grouped sales reports.
+     *
+     * Rows are bound to an item either by itemable.item_code or, for manually
+     * typed lines, by matching the line description against tblitems.description.
+     *
+     * @param array $where where conditions (string entries already prefixed with AND)
+     * @return array
+     */
+    public function get_sales_detail_rows($where)
+    {
+        $sql = 'SELECT
+            ' . db_prefix() . 'invoices.id as invoice_id,
+            ' . db_prefix() . 'invoices.clientid,
+            ' . db_prefix() . 'invoices.date,
+            ' . db_prefix() . 'invoices.currency,
+            ' . db_prefix() . 'clients.company,
+            ' . db_prefix() . 'itemable.description as item_name,
+            ' . db_prefix() . 'itemable.qty,
+            ' . db_prefix() . 'itemable.rate,
+            ' . db_prefix() . 'itemable.total_tax,
+            ' . db_prefix() . 'itemable.amount_after_tax,
+            COALESCE(' . db_prefix() . 'items.id, items_desc.id) as item_id,
+            COALESCE(' . db_prefix() . 'items.group_id, items_desc.group_id) as group_id,
+            ' . db_prefix() . 'items_groups.name as group_name
+        FROM ' . db_prefix() . 'itemable
+        JOIN ' . db_prefix() . 'invoices ON ' . db_prefix() . 'invoices.id = ' . db_prefix() . 'itemable.rel_id
+        LEFT JOIN ' . db_prefix() . 'clients ON ' . db_prefix() . 'clients.userid = ' . db_prefix() . 'invoices.clientid
+        LEFT JOIN ' . db_prefix() . 'items ON ' . db_prefix() . 'items.id = ' . db_prefix() . 'itemable.item_code
+        LEFT JOIN ' . db_prefix() . 'items items_desc ON ' . db_prefix() . 'itemable.item_code IS NULL AND items_desc.description = ' . db_prefix() . 'itemable.description
+        LEFT JOIN ' . db_prefix() . 'items_groups ON ' . db_prefix() . 'items_groups.id = COALESCE(' . db_prefix() . 'items.group_id, items_desc.group_id)
+        WHERE 1 = 1 ' . implode(' ', $where) . '
+        ORDER BY ' . db_prefix() . 'invoices.date ASC, ' . db_prefix() . 'invoices.id ASC, ' . db_prefix() . 'itemable.item_order ASC';
+
+        return $this->db->query($sql)->result_array();
+    }
+
+    /**
+     * Builds the grouped HTML report (group header, detail rows, sub group total, grand total).
+     *
+     * @param array  $rows    flat detail rows
+     * @param string $groupBy customer | item | principle
+     * @param object $currency base currency object
+     * @return string
+     */
+    public function build_sales_detail_report_html($rows, $groupBy, $currency)
+    {
+        // Resolve group name/id for each row
+        foreach ($rows as &$row) {
+            if ($groupBy == 'customer') {
+                $row['group_id']   = $row['clientid'];
+                $row['group_name'] = ($row['company'] != '' ? $row['company'] : ('Customer #' . $row['clientid']));
+            } elseif ($groupBy == 'item') {
+                if ($row['item_id']) {
+                    $row['group_id']   = $row['item_id'];
+                    $row['group_name'] = $row['item_name'];
+                } else {
+                    $row['group_id']   = 0;
+                    $row['group_name'] = ($row['item_name'] != '' ? $row['item_name'] : _l('report_no_item'));
+                }
+            } else {
+                // principle = item group
+                $row['group_id']   = ($row['group_id'] ? $row['group_id'] : 0);
+                $row['group_name'] = ($row['group_name'] != '' ? $row['group_name'] : _l('report_no_principle'));
+            }
+        }
+        unset($row);
+
+        // Group rows by group key keeping first appearance order
+        $grouped = [];
+        foreach ($rows as $row) {
+            $grouped[$row['group_id']][] = $row;
+        }
+
+        $html = '<div class="table-responsive"><table class="table table-bordered sales-detail-report-table">';
+        $html .= '<thead><tr>';
+        $html .= '<th>' . _l('report_invoice_number') . '</th>';
+        $html .= '<th>' . _l('report_invoice_date') . '</th>';
+        $html .= '<th>' . _l('invoice_table_item_heading') . '</th>';
+        $html .= '<th class="text-right">' . _l('invoice_table_quantity_heading') . '</th>';
+        $html .= '<th class="text-right">' . _l('invoice_table_rate_heading') . '</th>';
+        $html .= '<th class="text-right">' . _l('invoice_table_amount_heading') . '</th>';
+        $html .= '</tr></thead><tbody>';
+
+        $grandQty = 0;
+        $grandAmt = 0;
+
+        // Sub group totals per group id
+        $subTotals = [];
+        foreach ($grouped as $gid => $gRows) {
+            $subTotals[$gid] = ['qty' => 0, 'amount' => 0];
+        }
+
+        foreach ($grouped as $gid => $gRows) {
+            $gName = $gRows[0]['group_name'];
+            $html .= '<tr class="info"><td colspan="6"><strong>' . htmlspecialchars($gName) . '</strong></td></tr>';
+            foreach ($gRows as $row) {
+                $qty    = (float) $row['qty'];
+                $amount = $this->sales_detail_row_amount($row);
+                $subTotals[$gid]['qty'] += $qty;
+                $subTotals[$gid]['amount'] += $amount;
+                $grandQty += $qty;
+                $grandAmt += $amount;
+
+                $invoiceNo = '<a href="' . admin_url('invoices/list_invoices/' . $row['invoice_id']) . '" target="_blank">' . format_invoice_number($row['invoice_id']) . '</a>';
+
+                $html .= '<tr>';
+                $html .= '<td>' . $invoiceNo . '</td>';
+                $html .= '<td>' . _d($row['date']) . '</td>';
+                $html .= '<td>' . htmlspecialchars($row['item_name']) . '</td>';
+                $html .= '<td class="text-right">' . app_format_number($qty) . '</td>';
+                $html .= '<td class="text-right">' . app_format_money($row['rate'], $currency->name) . '</td>';
+                $html .= '<td class="text-right">' . app_format_money($amount, $currency->name) . '</td>';
+                $html .= '</tr>';
+            }
+            $html .= '<tr class="success">';
+            $html .= '<td colspan="3"><strong>' . _l('report_sub_group_total') . '</strong></td>';
+            $html .= '<td class="text-right"><strong>' . app_format_number($subTotals[$gid]['qty']) . '</strong></td>';
+            $html .= '<td></td>';
+            $html .= '<td class="text-right"><strong>' . app_format_money($subTotals[$gid]['amount'], $currency->name) . '</strong></td>';
+            $html .= '</tr>';
+        }
+
+        $html .= '<tr class="active">';
+        $html .= '<td colspan="3"><strong>' . _l('report_grand_total') . '</strong></td>';
+        $html .= '<td class="text-right"><strong>' . app_format_number($grandQty) . '</strong></td>';
+        $html .= '<td></td>';
+        $html .= '<td class="text-right"><strong>' . app_format_money($grandAmt, $currency->name) . '</strong></td>';
+        $html .= '</tr>';
+
+        $html .= '</tbody></table></div>';
+
+        return $html;
+    }
+
+    /**
+     * Value shown per sales detail row.
+     * Uses amount_after_tax when present (purchase invoices store the line total there),
+     * otherwise qty*rate + line total_tax (sales invoices store tax separately).
+     */
+    private function sales_detail_row_amount($row)
+    {
+        if (isset($row['amount_after_tax']) && $row['amount_after_tax'] !== null && $row['amount_after_tax'] !== '') {
+            return (float) $row['amount_after_tax'];
+        }
+
+        return (float) $row['qty'] * (float) $row['rate'] + (float) ($row['total_tax'] ?? 0);
+    }
 }
