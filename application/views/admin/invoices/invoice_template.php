@@ -276,7 +276,7 @@
                             value="<?php echo(isset($invoice) ? prep_tags_input(get_tags_in($invoice->id, 'invoice')) : ''); ?>"
                             data-role="tagsinput">
                     </div> -->
-                    <!-- <div class="form-group mbot15<?= count($payment_modes) > 0 ? ' select-placeholder' : ''; ?>">
+                    <div class="form-group mbot15<?= count($payment_modes) > 0 ? ' select-placeholder' : ''; ?>">
                         <label for="allowed_payment_modes"
                             class="control-label"><?php echo _l('invoice_add_edit_allowed_payment_modes'); ?></label>
                         <br />
@@ -316,7 +316,7 @@
                             <?php echo _l('new_payment_mode'); ?>
                         </a>
                         <?php } ?>
-                    </div> -->
+                    </div>
 
                     <div class="row">
                         <div class="col-md-6">

@@ -1,0 +1,7 @@
+acc_tax_deposit_to = (1140 Accounts Receivable)
+acc_tax_payment_account = (2141 Sales Tax / GST Payable)
+acc_expense_tax_deposit_to = (1190 Input Sales Tax / GST)
+acc_expense_tax_payment_account = (2110 Accounts Payable)
+-- history on tax accounts --
+account 219 rows=0 debit=0.00 credit=0.00
+account 202 rows=0 debit=0.00 credit=0.00

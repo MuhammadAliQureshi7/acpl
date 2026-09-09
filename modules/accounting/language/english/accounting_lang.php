@@ -967,3 +967,5 @@ $lang['accounting_no_data_changes']  = 'No data changes';
 $lang['transactions_do_not_match']  = 'Transactions do not match';
 $lang['withdrawal']  = 'Withdrawal';
 $lang['expense_category_mapping_setup'] = 'Expense category mapping setup';
+$lang['purchase_invoice'] = 'Purchase Invoice';
+$lang['acc_pur_invoice'] = 'Purchase invoice';

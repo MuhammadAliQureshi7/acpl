@@ -132,6 +132,18 @@ function convert_form_handler(form) {
     return false;
 }
 
+function convert_pur_invoice(id) {
+    "use strict";
+    requestGetJSON(admin_url + 'accounting/convert_pur_invoice/' + id).done(function(response) {
+        if (response.success === true || response.success == 'true') {
+            alert_float('success', response.message);
+        } else {
+            alert_float('danger', response.message);
+        }
+        init_purchase_order_table();
+    });
+}
+
 function init_purchase_order_table() {
 "use strict";
 

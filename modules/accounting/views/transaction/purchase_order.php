@@ -19,7 +19,7 @@
 <table class="table table-purchase-order">
   <thead>
     <th><span class="hide"> - </span><div class="checkbox mass_select_all_wrap"><input type="checkbox" id="mass_select_all" data-to-table="purchase-order"><label></label></div></th>
-    <th><?php echo _l('purchase_order'); ?></th>
+    <th><?php echo _l('purchase_invoice'); ?></th>
     <th><?php echo _l('order_date'); ?></th>
     <th><?php echo _l('vendor'); ?></th>
     <th><?php echo _l('po_value'); ?></th>

@@ -1549,7 +1549,7 @@ class Accounting extends AdminController
             $html = '<table class="table border table-striped no-margin">
                       <tbody>
                         <tr class="project-overview">
-                            <td class="bold" width="30%">'. _l('purchase_order').'</td>
+                            <td class="bold" width="30%">'. _l('purchase_invoice').'</td>
                             <td>'. '<a href="' . admin_url('purchase/purchase_order/' . $purchase_order->id) . '">'.$purchase_order->pur_order_number. '</a>'  .'</td>
                          </tr>
                          <tr class="project-overview">
@@ -2190,7 +2190,7 @@ class Accounting extends AdminController
             $html = '<table class="table border table-striped no-margin">
                       <tbody>
                          <tr class="project-overview">
-                            <td class="bold" width="30%">'. _l('purchase_order').'</td>
+                            <td class="bold" width="30%">'. _l('purchase_invoice').'</td>
                             <td>'.'<a href="'.admin_url('purchase/purchase_order/'.$invoice->pur_order).'">'.get_pur_order_subject($invoice->pur_order).'</a>' .'</td>
                             <td></td>
                          </tr>
@@ -4099,13 +4099,13 @@ class Accounting extends AdminController
                     foreach ($ids as $id) {
                         if ($this->input->post('mass_convert') === 'true') {
                             if (has_permission('accounting_transaction', '', 'create')) {
-                                if ($this->accounting_model->automatic_purchase_order_conversion($id)) {
+                                if ($this->accounting_model->automatic_purchase_invoice_conversion($id)) {
                                     $total_deleted++;
                                 }
                             }
                         }elseif($this->input->post('mass_delete_convert') === 'true'){
                             if (has_permission('accounting_transaction', '', 'delete')) {
-                                if ($this->accounting_model->delete_convert($id, 'purchase_order')) {
+                                if ($this->accounting_model->delete_convert($id, 'purchase_invoice')) {
                                     $total_deleted++;
                                 }
                             }
@@ -5219,6 +5219,24 @@ class Accounting extends AdminController
     }
 
     /**
+     * Convert one purchase invoice to the general ledger
+     * (purchase invoices are the purchase documents in this installation).
+     * @return json
+     */
+    public function convert_pur_invoice($invoice_id)
+    {
+        if (!has_permission('accounting_transaction', '', 'create')) {
+            access_denied('accounting_transaction');
+        }
+        $success = $this->accounting_model->automatic_purchase_invoice_conversion($invoice_id);
+        echo json_encode([
+            'success' => $success ? true : false,
+            'message' => $success ? _l('successfully_converted') : _l('conversion_failed'),
+        ]);
+        die();
+    }
+
+    /**
      * purchase order table
      * @return json
      */
@@ -5234,16 +5252,16 @@ class Accounting extends AdminController
             }
             $select = [
                 '1',
-                'pur_order_number',
-                'order_date',
-                db_prefix().'pur_orders.vendor as vendor',
+                'invoice_number',
+                'invoice_date',
+                db_prefix().'pur_invoices.vendor as vendor',
                 'subtotal',
-                'total_tax',
+                'tax',
                 'total',
-                'number',
-                'expense_convert',
-                '(select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_orders.id and ' . db_prefix() . 'acc_account_history.rel_type = "purchase_order") as count_account_historys',
-                db_prefix() .'pur_orders.id as id',
+                'pur_order',
+                '(select ifnull(sum(amount),0) from ' . db_prefix() . 'pur_invoice_payment where ' . db_prefix() . 'pur_invoice_payment.pur_invoice = ' . db_prefix() . 'pur_invoices.id) as paid_amount',
+                '(select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_invoices.id and ' . db_prefix() . 'acc_account_history.rel_type in ("purchase_order","purchase_invoice")) as count_account_historys',
+                db_prefix() .'pur_invoices.id as id',
             ];
 
             $where = [];
@@ -5254,17 +5272,17 @@ class Accounting extends AdminController
                 foreach ($status as $key => $value) {
                     if($value == 'converted'){
                         if($where_status != ''){
-                            $where_status .= ' or ((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_orders.id and ' . db_prefix() . 'acc_account_history.rel_type = "purchase_order") > 0)';
+                            $where_status .= ' or ((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_invoices.id and ' . db_prefix() . 'acc_account_history.rel_type in ("purchase_order","purchase_invoice")) > 0)';
                         }else{
-                            $where_status .= '((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_orders.id and ' . db_prefix() . 'acc_account_history.rel_type = "purchase_order") > 0)';
+                            $where_status .= '((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_invoices.id and ' . db_prefix() . 'acc_account_history.rel_type in ("purchase_order","purchase_invoice")) > 0)';
                         }
                     }
 
                     if($value == 'has_not_been_converted'){
                         if($where_status != ''){
-                            $where_status .= ' or ((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_orders.id and ' . db_prefix() . 'acc_account_history.rel_type = "purchase_order") = 0)';
+                            $where_status .= ' or ((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_invoices.id and ' . db_prefix() . 'acc_account_history.rel_type in ("purchase_order","purchase_invoice")) = 0)';
                         }else{
-                            $where_status .= '((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_orders.id and ' . db_prefix() . 'acc_account_history.rel_type = "purchase_order") = 0)';
+                            $where_status .= '((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_invoices.id and ' . db_prefix() . 'acc_account_history.rel_type in ("purchase_order","purchase_invoice")) = 0)';
                         }
                     }
                 }
@@ -5290,23 +5308,20 @@ class Accounting extends AdminController
                 }
             }
             if ($from_date != '' && $to_date != '') {
-                array_push($where, 'AND (' . db_prefix() . 'pur_orders.order_date >= "' . $from_date . '" and ' . db_prefix() . 'pur_orders.order_date <= "' . $to_date . '")');
+                array_push($where, 'AND (' . db_prefix() . 'pur_invoices.invoice_date >= "' . $from_date . '" and ' . db_prefix() . 'pur_invoices.invoice_date <= "' . $to_date . '")');
             } elseif ($from_date != '') {
-                array_push($where, 'AND (' . db_prefix() . 'pur_orders.order_date >= "' . $from_date . '")');
+                array_push($where, 'AND (' . db_prefix() . 'pur_invoices.invoice_date >= "' . $from_date . '")');
             } elseif ($to_date != '') {
-                array_push($where, 'AND (' . db_prefix() . 'pur_orders.order_date <= "' . $to_date . '")');
+                array_push($where, 'AND (' . db_prefix() . 'pur_invoices.invoice_date <= "' . $to_date . '")');
             }
 
             $aColumns     = $select;
             $sIndexColumn = 'id';
-            $sTable       = db_prefix() . 'pur_orders';
+            $sTable       = db_prefix() . 'pur_invoices';
             $join         = [
-                'LEFT JOIN '.db_prefix().'pur_vendor ON '.db_prefix().'pur_vendor.userid = '.db_prefix().'pur_orders.vendor',
-                'LEFT JOIN '.db_prefix().'departments ON '.db_prefix().'departments.departmentid = '.db_prefix().'pur_orders.department',
-                'LEFT JOIN '.db_prefix().'projects ON '.db_prefix().'projects.id = '.db_prefix().'pur_orders.project',
-                'LEFT JOIN '.db_prefix().'expenses ON '.db_prefix().'expenses.id = '.db_prefix().'pur_orders.expense_convert',
+                'LEFT JOIN '.db_prefix().'pur_vendor ON '.db_prefix().'pur_vendor.userid = '.db_prefix().'pur_invoices.vendor',
             ];
-            $result       = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, ['company','pur_order_number','expense_convert',db_prefix().'projects.name as project_name',db_prefix().'departments.name as department_name', db_prefix().'expenses.id as expense_id', db_prefix().'expenses.expense_name as expense_name']);
+            $result       = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, ['company','invoice_number']);
 
             $output  = $result['output'];
             $rResult = $result['rResult'];
@@ -5315,22 +5330,17 @@ class Accounting extends AdminController
                 $row   = [];
                 $row[] = '<div class="checkbox"><input type="checkbox" value="' . $aRow['id'] . '"><label></label></div>';
 
-                $numberOutput = '';
-    
-                $numberOutput = '<a href="' . admin_url('purchase/purchase_order/' . $aRow['id']) . '"  onclick="init_pur_order(' . $aRow['id'] . '); return false;" >'.$aRow['pur_order_number']. '</a>';
+                $numberOutput = '<a href="' . admin_url('purchase/pur_invoice/' . $aRow['id']) . '"  onclick="init_pur_invoice(' . $aRow['id'] . '); return false;" >'.$aRow['invoice_number']. '</a>';
                 
                 $numberOutput .= '<div class="row-options">';
 
                 if ($aRow['count_account_historys'] == 0) {
-                    if (has_permission('accounting_transaction', '', 'create') && (($acc_closing_date != '' && strtotime($acc_closing_date) <= strtotime($aRow['order_date'])) || $acc_closing_date == '' || strtotime(date('Y-m-d')) <= strtotime($acc_closing_date))) {
-                        $numberOutput .= '<a href="#" onclick="convert(this); return false;" class="text-success" id="purchase-order-id-'.$aRow['id'].'" data-id="'.$aRow['id'].'" data-type="purchase_order">' . _l('acc_convert') . '</a>';
+                    if (has_permission('accounting_transaction', '', 'create') && (($acc_closing_date != '' && strtotime($acc_closing_date) <= strtotime($aRow['invoice_date'])) || $acc_closing_date == '' || strtotime(date('Y-m-d')) <= strtotime($acc_closing_date))) {
+                        $numberOutput .= '<a href="#" onclick="convert_pur_invoice('.$aRow['id'].'); return false;" class="text-success" id="purchase-invoice-id-'.$aRow['id'].'" data-id="'.$aRow['id'].'">' . _l('acc_convert') . '</a>';
                     }
                 }else{
-                    if (has_permission('accounting_transaction', '', 'edit')) {
-                        $numberOutput .= '<a href="#" onclick="convert(this); return false;" id="purchase-order-id-'.$aRow['id'].'" data-id="'.$aRow['id'].'" data-type="purchase_order">' . _l('edit') . '</a>';
-                    }
                     if (has_permission('accounting_transaction', '', 'delete')) {
-                        $numberOutput .= ' | <a href="#" onclick="delete_convert('.$aRow['id'].', \'purchase_order\'); return false;" class="text-danger">' . _l('delete') . '</a>';
+                        $numberOutput .= '<a href="#" onclick="delete_convert('.$aRow['id'].', \'purchase_invoice\'); return false;" class="text-danger">' . _l('delete') . '</a>';
                     }
                 }
 
@@ -5338,17 +5348,17 @@ class Accounting extends AdminController
 
                 $row[] = $numberOutput;
 
-                $row[] = _d($aRow['order_date']);
+                $row[] = _d($aRow['invoice_date']);
 
                 $row[] = '<a href="' . admin_url('purchase/vendor/' . $aRow['vendor']) . '" >' .  $aRow['company'] . '</a>';
 
                 $row[] = app_format_money($aRow['subtotal'], $currency->name);
 
-                $row[] = app_format_money($aRow['total_tax'], $currency->name);
+                $row[] = app_format_money($aRow['tax'], $currency->name);
 
                 $row[] = app_format_money($aRow['total'], $currency->name);
 
-                $paid = $aRow['total'] - purorder_inv_left_to_pay($aRow['id']);
+                $paid = $aRow['paid_amount'];
 
                 $percent = 0;
 
@@ -5370,15 +5380,7 @@ class Accounting extends AdminController
 
                             </div>';
 
-                if($aRow['expense_convert'] == 0){
-                    $row[] = '';
-                }else{
-                    if($aRow['expense_name'] != ''){
-                        $row[] = '<a href="'.admin_url('expenses/list_expenses/'.$aRow['expense_convert']).'">#'.$aRow['expense_id'].' - '. $aRow['expense_name'].'</a>';
-                    }else{
-                        $row[] = '<a href="'.admin_url('expenses/list_expenses/'.$aRow['expense_convert']).'">#'.$aRow['expense_id'].'</a>';
-                    }
-                }
+                $row[] = '';
 
                 $status_name = _l('has_not_been_converted');
                 $label_class = 'default';
@@ -5391,12 +5393,11 @@ class Accounting extends AdminController
                 $row[] = '<span class="label label-' . $label_class . ' s-status purchase_order-status-' . $aRow['id'] . '">' . $status_name . '</span>';
                 
                 $options = '';
-                if($aRow['count_account_historys'] == 0 && has_permission('accounting_transaction', '', 'create') && (($acc_closing_date != '' && strtotime($acc_closing_date) <= strtotime($aRow['order_date'])) || $acc_closing_date == '' || strtotime(date('Y-m-d')) <= strtotime($acc_closing_date))){
+                if($aRow['count_account_historys'] == 0 && has_permission('accounting_transaction', '', 'create') && (($acc_closing_date != '' && strtotime($acc_closing_date) <= strtotime($aRow['invoice_date'])) || $acc_closing_date == '' || strtotime(date('Y-m-d')) <= strtotime($acc_closing_date))){
                     $options = icon_btn('#', 'share', 'btn-success', [
                         'title' => _l('acc_convert'),
                         'data-id' =>$aRow['id'],
-                        'data-type' => 'purchase_order',
-                        'onclick' => 'convert(this); return false;'
+                        'onclick' => 'convert_pur_invoice('.$aRow['id'].'); return false;'
                     ]);
                 }
 
@@ -6651,6 +6652,23 @@ class Accounting extends AdminController
                         $arr_header['account_name'] = 3;
                         $arr_header['sub_account_of'] = 4;
 
+                        // Client-format support: their file uses "Type" as the parent
+                        // account name (or "—" for top-level accounts) and a generic
+                        // "Sub Type". Detect it and translate rows to native types.
+                        $this->load->helper(ACCOUNTING_MODULE_NAME . '/acc_client_import');
+                        $is_client_format = false;
+                        $file_account_names = [];
+                        for ($i = 1; $i < count($data); $i++) {
+                            $_t = isset($data[$i][$arr_header['type']]) ? trim((string)$data[$i][$arr_header['type']]) : '';
+                            $_n = isset($data[$i][$arr_header['account_name']]) ? trim((string)$data[$i][$arr_header['account_name']]) : '';
+                            if ($_n !== '') {
+                                $file_account_names[$_n] = $i;
+                            }
+                            if ($_t === '—') {
+                                $is_client_format = true;
+                            }
+                        }
+
                         $total_rows = 0;
                         $total_row_false = 0;
 
@@ -6684,6 +6702,39 @@ class Accounting extends AdminController
                             $value_account_code = isset($data[$row][$arr_header['account_code']]) ? $data[$row][$arr_header['account_code']] : '';
                             $value_account_name = isset($data[$row][$arr_header['account_name']]) ? $data[$row][$arr_header['account_name']] : '';
                             $value_sub_account_of = isset($data[$row][$arr_header['sub_account_of']]) ? $data[$row][$arr_header['sub_account_of']] : '';
+
+                            // Translate client-format rows to native account type /
+                            // detail type names (by their account code, with a
+                            // fallback per generic sub type), and use their "Type"
+                            // column as the parent account.
+                            if ($is_client_format) {
+                                $orig_type = trim((string)$value_type);
+                                $orig_sub_type = trim((string)$value_sub_type);
+
+                                $acc_code = trim((string)$value_account_code);
+                                if (is_numeric($acc_code)) {
+                                    $acc_code = (string)(int)$acc_code;
+                                }
+                                $code_map = acc_client_import_get_code_map();
+                                $sub_defaults = acc_client_import_get_subtype_defaults();
+
+                                if (isset($code_map[$acc_code])) {
+                                    $value_type = $code_map[$acc_code][0];
+                                    $value_sub_type = $code_map[$acc_code][1];
+                                } elseif (isset($sub_defaults[$orig_sub_type])) {
+                                    $value_type = $sub_defaults[$orig_sub_type][0];
+                                    $value_sub_type = $sub_defaults[$orig_sub_type][1];
+                                }
+
+                                if (($value_sub_account_of === null || trim((string)$value_sub_account_of) === '')
+                                    && $orig_type !== '' && $orig_type !== '—' && $orig_type !== '-') {
+                                    // Their "Type" cell is the parent account name; match it
+                                    // against the accounts in this file (tolerating small
+                                    // spelling differences in their own file).
+                                    $matched_parent = acc_client_import_find_file_parent($orig_type, $file_account_names);
+                                    $value_sub_account_of = $matched_parent ? $matched_parent : '';
+                                }
+                            }
 
                             $reg_day = '/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/'; /*yyyy-mm-dd*/
 
@@ -6729,23 +6780,29 @@ class Accounting extends AdminController
                             }
 
                             if (is_null($value_sub_account_of) == false && $value_sub_account_of != '') {
+                                $value_sub_account_of = trim((string)$value_sub_account_of);
                                 if(!in_array($value_sub_account_of, $check_arr_account_name)){
-                                    if(is_numeric($value_sub_account_of)){
-                                        if(get_account_by_id($value_sub_account_of) == false){
-                                            $string_error .= _l('sub_account_of') .' '. _l('invalid').' ';
-                                            $flag = 1;
-                                        }else{
-                                            $value_sub_account_of = get_account_by_id($value_sub_account_of);
-                                        }
+                                    if($is_client_format && array_key_exists($value_sub_account_of, $file_account_names)){
+                                        // Parent account is imported in this same file (client format),
+                                        // resolved to its id after the parent rows have been inserted.
                                     }else{
-                                        if(!array_key_exists($value_sub_account_of, $account_name)){
-                                            if($string_error != ''){
-                                                $string_error .= ', ';
+                                        if(is_numeric($value_sub_account_of)){
+                                            if(get_account_by_id($value_sub_account_of) == false){
+                                                $string_error .= _l('sub_account_of') .' '. _l('invalid').' ';
+                                                $flag = 1;
+                                            }else{
+                                                $value_sub_account_of = get_account_by_id($value_sub_account_of);
                                             }
-                                            $string_error .= _l('sub_account_of') .' '. _l('invalid');
-                                            $flag = 1;
                                         }else{
-                                            $value_sub_account_of = $account_name[$value_sub_account_of];
+                                            if(!array_key_exists($value_sub_account_of, $account_name)){
+                                                if($string_error != ''){
+                                                    $string_error .= ', ';
+                                                }
+                                                $string_error .= _l('sub_account_of') .' '. _l('invalid');
+                                                $flag = 1;
+                                            }else{
+                                                $value_sub_account_of = $account_name[$value_sub_account_of];
+                                            }
                                         }
                                     }
                                 }
@@ -6784,7 +6841,48 @@ class Accounting extends AdminController
 
                         //insert batch
                         if (count($arr_insert) > 0) {
-                            $this->accounting_model->insert_batch_account($arr_insert);
+                            if ($is_client_format) {
+                                // Client file is ordered parent-before-child: insert rows in
+                                // file order and resolve parent names to ids as we go so the
+                                // account hierarchy is preserved. Accounts already in the
+                                // database are updated by name (same behaviour as
+                                // insert_batch_account).
+                                $imported_account_ids = [];
+                                foreach ($arr_insert as $rd) {
+                                    $parent_name = isset($rd['parent_account']) ? trim((string)$rd['parent_account']) : '';
+                                    unset($rd['parent_account']);
+
+                                    if ($parent_name != '' && $parent_name != '0') {
+                                        if (is_numeric($parent_name)) {
+                                            // already resolved to an existing account id
+                                            $rd['parent_account'] = (int)$parent_name;
+                                        } elseif (isset($imported_account_ids[$parent_name])) {
+                                            $rd['parent_account'] = $imported_account_ids[$parent_name];
+                                        } else {
+                                            $parent_id = get_account_by_name($parent_name);
+                                            $rd['parent_account'] = $parent_id ? $parent_id : null;
+                                        }
+                                    } else {
+                                        $rd['parent_account'] = null;
+                                    }
+
+                                    $rd_name = trim((string)$rd['name']);
+                                    $existing_id = get_account_by_name($rd['name']);
+                                    if ($existing_id) {
+                                        $this->db->where('id', $existing_id);
+                                        $this->db->update(db_prefix() . 'acc_accounts', $rd);
+                                        $imported_account_ids[$rd_name] = $existing_id;
+                                    } else {
+                                        $this->db->insert(db_prefix() . 'acc_accounts', $rd);
+                                        $insert_id = $this->db->insert_id();
+                                        if ($insert_id) {
+                                            $imported_account_ids[$rd_name] = $insert_id;
+                                        }
+                                    }
+                                }
+                            } else {
+                                $this->accounting_model->insert_batch_account($arr_insert);
+                            }
                         }
 
                         $total_rows = $total_rows;

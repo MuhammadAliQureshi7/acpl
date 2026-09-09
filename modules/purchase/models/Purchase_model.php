@@ -4891,6 +4891,11 @@ class Purchase_model extends App_Model
             $serials = $data['pi_serial_data'];
             unset($data['pi_serial_data']);
         } 
+        if (isset($data['total_tax'])){
+            $data['tax'] = $data['total_tax'];
+            unset($data['total_tax']);
+        } 
+
         // dd($data);
 
         $data['add_from'] = get_staff_user_id();

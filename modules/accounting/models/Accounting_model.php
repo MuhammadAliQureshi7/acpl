@@ -8495,6 +8495,60 @@ class Accounting_model extends App_Model
                     $data_insert[] = $node;
                 }
             }
+
+            // Invoices created/imported without tax recorded on the line items still
+            // carry the tax inside the invoice total (total = subtotal + tax). Post the
+            // residual as output tax: Debit deposit_to (Accounts Receivable, gross) /
+            // Credit tax_payment_account (Sales Tax / GST Payable).
+            if ($currency_converter == 0 && isset($invoice->total)) {
+                $posted_line_total = 0;
+                $posted_tax_total = 0;
+                foreach ($data_insert as $posted_node) {
+                    if (($posted_node['account'] ?? 0) == $payment_account && ($posted_node['credit'] ?? 0) > 0) {
+                        $posted_line_total += $posted_node['credit'];
+                    }
+                    if (($posted_node['account'] ?? 0) == $tax_payment_account && ($posted_node['credit'] ?? 0) > 0) {
+                        $posted_tax_total += $posted_node['credit'];
+                    }
+                }
+                $residual_tax = round((float)$invoice->total - $posted_line_total - $posted_tax_total, 2);
+                if ($residual_tax > 0.005) {
+                    $node = [];
+                    $node['itemable_id'] = 0;
+                    $node['split'] = $tax_payment_account;
+                    $node['account'] = $deposit_to;
+                    $node['date'] = $invoice->date;
+                    $node['paid'] = $paid;
+                    $node['debit'] = $residual_tax;
+                    $node['customer'] = $invoice->clientid;
+                    $node['tax'] = 0;
+                    $node['credit'] = 0;
+                    $node['description'] = '';
+                    $node['rel_id'] = $invoice_id;
+                    $node['rel_type'] = 'invoice';
+                    $node['datecreated'] = date('Y-m-d H:i:s');
+                    $node['addedfrom'] = get_staff_user_id();
+                    $data_insert[] = $node;
+
+                    $node = [];
+                    $node['itemable_id'] = 0;
+                    $node['split'] = $deposit_to;
+                    $node['customer'] = $invoice->clientid;
+                    $node['account'] = $tax_payment_account;
+                    $node['date'] = $invoice->date;
+                    $node['paid'] = $paid;
+                    $node['debit'] = 0;
+                    $node['credit'] = $residual_tax;
+                    $node['description'] = '';
+                    $node['tax'] = 0;
+                    $node['rel_id'] = $invoice_id;
+                    $node['rel_type'] = 'invoice';
+                    $node['datecreated'] = date('Y-m-d H:i:s');
+                    $node['addedfrom'] = get_staff_user_id();
+                    $data_insert[] = $node;
+                }
+            }
+
             if ($data_insert != []) {
                 $affectedRows = $this->db->insert_batch(db_prefix() . 'acc_account_history', $data_insert);
             }
@@ -12905,6 +12959,131 @@ class Accounting_model extends App_Model
     }
 
     /**
+     * Automatic purchase INVOICE conversion
+     *
+     * Purchase documents in this installation are purchase invoices
+     * (tblpur_invoices), not purchase orders. Posts the whole invoice:
+     *   Debit  acc_pur_order_deposit_to   (default purchase account)
+     *   Credit acc_pur_order_payment_account (Accounts Payable)
+     * and, when the invoice has tax, the expense tax pair
+     * (Debit Input GST / Credit Accounts Payable).
+     *
+     * @param  integer $invoice_id tblpur_invoices.id
+     * @return boolean
+     */
+    public function automatic_purchase_invoice_conversion($invoice_id)
+    {
+        $this->db->group_start();
+        $this->db->where('rel_id', $invoice_id);
+        $this->db->where_in('rel_type', ['purchase_order', 'purchase_invoice']);
+        $this->db->group_end();
+        $count = $this->db->count_all_results(db_prefix() . 'acc_account_history');
+
+        if ($count > 0) {
+            return false;
+        }
+
+        $this->load->model('purchase/purchase_model');
+        $invoice = $this->purchase_model->get_pur_invoice($invoice_id);
+
+        if (!$invoice) {
+            return false;
+        }
+
+        if (get_option('acc_close_the_books') == 1) {
+            if (strtotime($invoice->invoice_date) <= strtotime(get_option('acc_closing_date')) && strtotime(date('Y-m-d')) > strtotime(get_option('acc_closing_date'))) {
+                return false;
+            }
+        }
+
+        $payment_account = get_option('acc_pur_order_payment_account');
+        $deposit_to = get_option('acc_pur_order_deposit_to');
+        $tax_deposit_to = get_option('acc_expense_tax_deposit_to');
+        $tax_payment_account = get_option('acc_expense_tax_payment_account');
+
+        $total = (float)$invoice->total;
+        $tax = (float)$invoice->tax;
+        $base = $total - $tax;
+
+        $data_insert = [];
+        $paid = 0;
+        if (isset($invoice->payment_status) && $invoice->payment_status == 'paid') {
+            $paid = 1;
+        }
+
+        if ($base != 0) {
+            $data_insert[] = [
+                'split' => $payment_account,
+                'account' => $deposit_to,
+                'debit' => $base,
+                'credit' => 0,
+                'date' => $invoice->invoice_date,
+                'description' => isset($invoice->invoice_number) ? $invoice->invoice_number : '',
+                'rel_id' => $invoice_id,
+                'rel_type' => 'purchase_invoice',
+                'datecreated' => date('Y-m-d H:i:s'),
+                'addedfrom' => get_staff_user_id(),
+                'vendor' => isset($invoice->vendor) ? $invoice->vendor : null,
+                'paid' => $paid,
+            ];
+            $data_insert[] = [
+                'split' => $deposit_to,
+                'account' => $payment_account,
+                'debit' => 0,
+                'credit' => $base,
+                'date' => $invoice->invoice_date,
+                'description' => isset($invoice->invoice_number) ? $invoice->invoice_number : '',
+                'rel_id' => $invoice_id,
+                'rel_type' => 'purchase_invoice',
+                'datecreated' => date('Y-m-d H:i:s'),
+                'addedfrom' => get_staff_user_id(),
+                'vendor' => isset($invoice->vendor) ? $invoice->vendor : null,
+                'paid' => $paid,
+            ];
+        }
+
+        if ($tax > 0) {
+            $data_insert[] = [
+                'split' => $tax_payment_account,
+                'account' => $tax_deposit_to,
+                'debit' => $tax,
+                'credit' => 0,
+                'date' => $invoice->invoice_date,
+                'description' => isset($invoice->invoice_number) ? $invoice->invoice_number : '',
+                'rel_id' => $invoice_id,
+                'rel_type' => 'purchase_invoice',
+                'datecreated' => date('Y-m-d H:i:s'),
+                'addedfrom' => get_staff_user_id(),
+                'vendor' => isset($invoice->vendor) ? $invoice->vendor : null,
+                'paid' => $paid,
+            ];
+            $data_insert[] = [
+                'split' => $tax_deposit_to,
+                'account' => $tax_payment_account,
+                'debit' => 0,
+                'credit' => $tax,
+                'date' => $invoice->invoice_date,
+                'description' => isset($invoice->invoice_number) ? $invoice->invoice_number : '',
+                'rel_id' => $invoice_id,
+                'rel_type' => 'purchase_invoice',
+                'datecreated' => date('Y-m-d H:i:s'),
+                'addedfrom' => get_staff_user_id(),
+                'vendor' => isset($invoice->vendor) ? $invoice->vendor : null,
+                'paid' => $paid,
+            ];
+        }
+
+        if ($data_insert != []) {
+            $this->db->insert_batch(db_prefix() . 'acc_account_history', $data_insert);
+            if ($this->db->affected_rows() > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Automatic stock import conversion
      * @param  integer $stock_import_id 
      * @return boolean
@@ -13580,8 +13759,8 @@ class Accounting_model extends App_Model
         if ($where != '') {
             $this->db->where($where);
         }
-        $this->db->where('((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_orders.id and ' . db_prefix() . 'acc_account_history.rel_type = "purchase_order") = 0) ' . $where_currency);
-        return $this->db->count_all_results(db_prefix() . 'pur_orders');
+        $this->db->where('((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_invoices.id and ' . db_prefix() . 'acc_account_history.rel_type in ("purchase_order","purchase_invoice")) = 0) ' . $where_currency);
+        return $this->db->count_all_results(db_prefix() . 'pur_invoices');
     }
 
     /**
@@ -13600,8 +13779,7 @@ class Accounting_model extends App_Model
         if ($where != '') {
             $this->db->where($where);
         }
-        $this->db->where('((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_invoice_payment.id and ' . db_prefix() . 'acc_account_history.rel_type = "purchase_payment") = 0) AND (' . db_prefix() . 'pur_invoices.pur_order is not null) ' . $where_currency);
-        $this->db->join(db_prefix() . 'pur_invoices', db_prefix() . 'pur_invoices.id = ' . db_prefix() . 'pur_invoice_payment.pur_invoice', 'left');
+        $this->db->where('((select count(*) from ' . db_prefix() . 'acc_account_history where ' . db_prefix() . 'acc_account_history.rel_id = ' . db_prefix() . 'pur_invoice_payment.id and ' . db_prefix() . 'acc_account_history.rel_type = "purchase_payment") = 0) ' . $where_currency);
         return $this->db->count_all_results(db_prefix() . 'pur_invoice_payment');
     }
 

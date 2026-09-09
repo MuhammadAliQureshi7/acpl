@@ -20,7 +20,7 @@ $table_data = [
     _l('invoice_payments_table_date_heading'),
     _l('acc_amount'),
     _l('payment_mode'),
-    _l('purchase_order'),
+    _l('purchase_invoice'),
     _l('status'),
     _l('acc_convert'),
 ];

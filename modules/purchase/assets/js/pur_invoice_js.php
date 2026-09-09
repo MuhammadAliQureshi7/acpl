@@ -209,6 +209,7 @@ function calculate_total() {
   $('.discount-total').text(numberWithCommas(discount_amount.toFixed(2)));
   $('.adjustment').text(numberWithCommas(adjustment.toFixed(2)));
   $('.total_tax').text(numberWithCommas(total_tax_sum.toFixed(2)));
+  $('#total_tax_input').val(total_tax_sum.toFixed(2));
   $('.total').text(numberWithCommas(grand_total.toFixed(2)));
 
   $('input[name="subtotal"]').val(numberWithCommas(subtotal.toFixed(2)));

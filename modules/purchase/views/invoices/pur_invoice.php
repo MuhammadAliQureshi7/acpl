@@ -217,10 +217,12 @@
             				<tr class="total_tax_row">
             					<td><span class="bold"><?php echo _l('total_tax'); ?> :</span></td>
             					<td class="total_tax"></td>
+								<input id="total_tax_input" type="hidden" name="total_tax" value="<?php echo (isset($pur_invoice) ? $pur_invoice->tax : 0); ?>">
             				</tr>
             				<tr>
             					<td><span class="bold"><?php echo _l('invoice_total'); ?> :</span></td>
             					<td class="total"></td>
+								
             				</tr>
             			</tbody>
             		</table>

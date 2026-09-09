@@ -69,7 +69,7 @@ $(function() {
             // Add total tax row under discount
             if(total_tax_sum > 0) {
                 $('#discount_area').after(
-                    '<tr class="total-tax-row"><td><span class="bold">' + app.lang.total_tax + '</span></td><td class="total-tax">' + format_money(total_tax_sum) + '</td></tr>'
+                    '<tr class="total-tax-row"><td><span class="bold">Total Tax</span></td><td class="total-tax">' + format_money(total_tax_sum) + '</td><input type="hidden" name="total_tax" value="' + total_tax_sum + '"></tr>'
                 );
             }
 

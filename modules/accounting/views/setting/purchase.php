@@ -23,7 +23,7 @@
           <div class="col-md-6">
             <div class="row">
               <div class="col-md-6 border-right">
-                <h5 class="title mbot5"><?php echo _l('purchase_order') ?></h5>
+                <h5 class="title mbot5"><?php echo _l('purchase_invoice') ?></h5>
               </div>
               <div class="col-md-6 mtop5">
                   <div class="onoffswitch">

@@ -5,7 +5,7 @@
       <ul class="nav nav-tabs profile-tabs row customer-profile-tabs nav-tabs-horizontal" role="tablist">
          <li role="presentation" class="<?php if($tab_2 == 'purchase_order'){echo 'active';}; ?>">
             <a href="<?php echo admin_url('accounting/transaction?group=purchase&tab=purchase_order'); ?>">
-              <i class="fa fa-credit-card"></i>&nbsp;<?php echo _l('purchase_order'); ?> <span class="text-danger"><?php echo '('.$count_purchase_order.')'; ?></span>
+              <i class="fa fa-credit-card"></i>&nbsp;<?php echo _l('purchase_invoice'); ?> <span class="text-danger"><?php echo '('.$count_purchase_order.')'; ?></span>
             </a>
          </li>
          <li role="presentation" class="<?php if($tab_2 == 'purchase_payment'){echo 'active';}; ?>">
