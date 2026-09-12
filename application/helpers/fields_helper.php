@@ -461,7 +461,7 @@ if (!function_exists('render_form_builder_field')) {
             if ($type === 'paragraph') {
                 echo ' style="line-height:24px;"';
             } else {
-                echo ' style="margin-top:0; font-size:22px;"';
+                echo ' style="margin-top:0; font-size:17.6px;"';
             }
 
             echo ' >' . check_for_links(nl2br($field->label)) . '</' . $field->subtype . '>';

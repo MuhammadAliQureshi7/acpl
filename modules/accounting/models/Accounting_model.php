@@ -7992,6 +7992,139 @@ class Accounting_model extends App_Model
     }
 
     /**
+     * Account ledger: debit and credit movements with a running balance for
+     * each account in the chart of accounts.
+     *
+     * The balance direction follows the account type, using the same rule as
+     * get_data_general_ledger(): payables, credit cards, liabilities, equity
+     * and income carry a credit balance, every other type a debit balance.
+     * Accounts without any movement (before or inside the period) are skipped.
+     *
+     * @param  array $data_filter from_date, to_date, accounts, accounting_method
+     * @return array
+     */
+    public function get_data_account_ledger($data_filter)
+    {
+        $from_date         = date('Y-m-01');
+        $to_date           = date('Y-m-d');
+        $accounting_method = 'accrual';
+        $account_ids       = [];
+
+        if (isset($data_filter['from_date'])) {
+            $from_date = to_sql_date($data_filter['from_date']);
+        }
+
+        if (isset($data_filter['to_date'])) {
+            $to_date = to_sql_date($data_filter['to_date']);
+        }
+
+        if (isset($data_filter['accounting_method']) && $data_filter['accounting_method'] != '') {
+            $accounting_method = $data_filter['accounting_method'];
+        }
+
+        if (isset($data_filter['accounts']) && is_array($data_filter['accounts'])) {
+            foreach ($data_filter['accounts'] as $account_id) {
+                if ($account_id !== '') {
+                    $account_ids[] = (int) $account_id;
+                }
+            }
+        }
+
+        $accounts = [];
+        foreach ($this->accounting_model->get_accounts() as $account) {
+            if (count($account_ids) > 0 && !in_array((int) $account['id'], $account_ids)) {
+                continue;
+            }
+            $accounts[$account['id']] = $account;
+        }
+
+        uasort($accounts, function ($a, $b) {
+            return strnatcmp((string) $a['number'], (string) $b['number']);
+        });
+
+        $method_where = $accounting_method == 'cash'
+            ? ' AND ((rel_type = "invoice" and paid = 1) or rel_type != "invoice")'
+            : '';
+
+        $from_date_sql = $this->db->escape_str($from_date);
+        $to_date_sql   = $this->db->escape_str($to_date);
+
+        $data_report = [];
+        foreach ($accounts as $account_id => $account) {
+            $opening = $this->db->query('SELECT SUM(debit) as debit, SUM(credit) as credit
+                FROM ' . db_prefix() . 'acc_account_history
+                WHERE account = ' . (int) $account_id . ' AND date < "' . $from_date_sql . '"'
+                . $method_where)->row_array();
+
+            $opening_balance = $this->account_ledger_balance(
+                $account['account_type_id'],
+                isset($opening['debit']) ? $opening['debit'] : 0,
+                isset($opening['credit']) ? $opening['credit'] : 0
+            );
+
+            $history = $this->db->query('SELECT id, date, debit, credit, description, rel_type
+                FROM ' . db_prefix() . 'acc_account_history
+                WHERE account = ' . (int) $account_id . '
+                AND (date >= "' . $from_date_sql . '" AND date <= "' . $to_date_sql . '")'
+                . $method_where . '
+                ORDER BY date ASC, id ASC')->result_array();
+
+            if ($opening_balance == 0 && count($history) === 0) {
+                continue;
+            }
+
+            $balance      = $opening_balance;
+            $total_debit  = 0;
+            $total_credit = 0;
+            $rows         = [];
+
+            foreach ($history as $entry) {
+                $balance += $this->account_ledger_balance($account['account_type_id'], $entry['debit'], $entry['credit']);
+                $total_debit += (float) $entry['debit'];
+                $total_credit += (float) $entry['credit'];
+
+                $rows[] = [
+                    'id'          => $entry['id'],
+                    'date'        => $entry['date'],
+                    'type'        => _l($entry['rel_type']),
+                    'description' => $entry['description'],
+                    'debit'       => (float) $entry['debit'],
+                    'credit'      => (float) $entry['credit'],
+                    'balance'     => $balance,
+                ];
+            }
+
+            $data_report[] = [
+                'name'         => $account['name'],
+                'opening'      => $opening_balance,
+                'rows'         => $rows,
+                'total_debit'  => $total_debit,
+                'total_credit' => $total_credit,
+                'closing'      => $balance,
+            ];
+        }
+
+        return [
+            'data'              => $data_report,
+            'from_date'         => $from_date,
+            'to_date'           => $to_date,
+            'accounting_method' => $accounting_method,
+        ];
+    }
+
+    /**
+     * Balance movement of a single ledger line based on the account's normal balance side.
+     */
+    private function account_ledger_balance($account_type_id, $debit, $credit)
+    {
+        if (in_array((int) $account_type_id, [6, 7, 8, 9, 10, 11, 12])) {
+            return (float) $credit - (float) $debit;
+        }
+
+        return (float) $debit - (float) $credit;
+    }
+
+    /**
      * Gets the where report period.
      *
      * @param      string  $field  The field

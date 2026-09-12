@@ -25,6 +25,9 @@
 	                      <hr class="hr-10" />
 	                      <p><a href="#" class="font-medium" onclick="init_report(this,'purchase_invoice_rp'); return false;"><i class="fa fa-caret-down" aria-hidden="true"></i> <?php echo _l('purchase_invoice_rp'); ?></a></p>
 
+	                      <hr class="hr-10" />
+	                      <p><a href="#" class="font-medium" onclick="init_report(this,'vendor_ledger'); return false;"><i class="fa fa-caret-down" aria-hidden="true"></i> <?php echo _l('report_vendor_ledger'); ?></a></p>
+
 	                  	 </div>
 		                  <div class="col-md-4 border-right">
 		                    <h4 class="no-margin font-medium"><i class="fa fa-area-chart" aria-hidden="true"></i> <?php echo _l('charts_based_report'); ?></h4>
@@ -99,6 +102,36 @@
 		                           </div>
 		                        </div>
 		                     </div>
+		                     <div id="vendor_ledger_filters" class="hide mbot15">
+		                        <div class="row">
+		                           <div class="col-md-6">
+		                              <label for="vendor-ledger-from" class="control-label"><?php echo _l('report_sales_from_date'); ?></label>
+		                              <div class="input-group date">
+		                                 <input type="text" class="form-control datepicker" id="vendor-ledger-from" name="vendor-ledger-from" value="<?php echo _d(date('Y-m-01')); ?>">
+		                                 <div class="input-group-addon">
+		                                    <i class="fa fa-calendar calendar-icon"></i>
+		                                 </div>
+		                              </div>
+		                           </div>
+		                           <div class="col-md-6">
+		                              <label for="vendor-ledger-to" class="control-label"><?php echo _l('report_sales_to_date'); ?></label>
+		                              <div class="input-group date">
+		                                 <input type="text" class="form-control datepicker" id="vendor-ledger-to" name="vendor-ledger-to" value="<?php echo _d(date('Y-m-d')); ?>">
+		                                 <div class="input-group-addon">
+		                                    <i class="fa fa-calendar calendar-icon"></i>
+		                                 </div>
+		                              </div>
+		                           </div>
+		                        </div>
+		                        <div class="form-group mtop10">
+		                           <label for="vendor_ledger_vendors"><?php echo _l('report_vendor'); ?></label>
+		                           <select name="vendor_ledger_vendors[]" id="vendor_ledger_vendors" class="selectpicker" data-live-search="true" data-width="100%" multiple data-none-selected-text="<?php echo _l('report_all_vendors'); ?>">
+		                              <?php foreach($vendors as $vendor){ ?>
+		                                 <option value="<?php echo html_entity_decode($vendor['userid']); ?>"><?php echo html_entity_decode($vendor['company']); ?></option>
+		                              <?php } ?>
+		                           </select>
+		                        </div>
+		                     </div>
 		                     <?php $current_year = date('Y');
 	                              $y0 = (int)$current_year;
 	                              $y1 = (int)$current_year - 1;
@@ -154,6 +187,9 @@
 			          	</div>
 			          	<div class="col-md-12">
 			          	<?php $this->load->view('purchase_inv_report'); ?>
+			          	</div>
+			          	<div class="col-md-12">
+			          	<?php $this->load->view('vendor_ledger_report'); ?>
 			          	</div>
 		            </div>
 	            </div>      

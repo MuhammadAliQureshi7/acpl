@@ -36,9 +36,11 @@
   var customersFilter = $('#customers');
   var itemsFilter = $('#items-filter');
   var principlesFilter = $('#principles-filter');
+  var ledgerFilters = $('#ledger-filters');
+  var report_customer_ledger = $('#customer-ledger-report');
 
   $(function () {
-    $('#customer,#report-item,#report-principle').on('change', function () {
+    $('#customer,#report-item,#report-principle,#ledger-from,#ledger-to,#ledger-customers').on('change', function () {
       gen_reports();
     });
     $('select[name="currency"],select[name="invoice_status"],select[name="estimate_status"],select[name="sale_agent_invoices"],select[name="sale_agent_items"],select[name="sale_agent_estimates"],select[name="payments_years"],select[name="proposals_sale_agents"],select[name="proposal_status"],select[name="credit_note_status"]').on('change', function () {
@@ -174,10 +176,12 @@
     report_customerswise.addClass('hide');
     report_itemswise.addClass('hide');
     report_principleswise.addClass('hide');
+    report_customer_ledger.addClass('hide');
 
     customersFilter.addClass('hide');
     itemsFilter.addClass('hide');
     principlesFilter.addClass('hide');
+    ledgerFilters.addClass('hide');
 
     $('#income-years').addClass('hide');
     $('.chart-income').addClass('hide');
@@ -192,7 +196,7 @@
     report_from.val('');
     $('#currency').removeClass('hide');
 
-    if (type != 'total-income' && type != 'payment-modes') {
+    if (type != 'total-income' && type != 'payment-modes' && type != 'customer-ledger') {
       report_from_choose.removeClass('hide');
     }
 
@@ -228,6 +232,10 @@
       report_proposals.removeClass('hide');
     } else if (type == 'items-report') {
       report_items.removeClass('hide');
+    } else if (type == 'customer-ledger') {
+      report_customer_ledger.removeClass('hide');
+      ledgerFilters.removeClass('hide');
+      date_range.addClass('hide');
     }
     gen_reports();
   }
@@ -437,6 +445,32 @@
     return false;
   }
 
+  function customer_ledger_report() {
+    var data = {
+      ledger_from: $('#ledger-from').val(),
+      ledger_to: $('#ledger-to').val(),
+      report_customers: $('#ledger-customers').val()
+    };
+    $.post(admin_url + 'reports/customer_ledger', data).done(function (response) {
+      $('#customer-ledger-report-content').html(response);
+    });
+  }
+
+  function customer_ledger_print() {
+    var printContents = $('#customer-ledger-report-content').html();
+    if (!printContents || !$.trim(printContents)) {
+      alert('<?php echo _l('report_generate_first'); ?>');
+      return false;
+    }
+    var w = window.open('', '_blank');
+    w.document.write('<html><head><title></title><style>table{width:100%;border-collapse:collapse;margin-bottom:18px}th,td{border:1px solid #444;padding:4px 6px;font-size:12px}th{background:#eee;text-align:left}.text-right{text-align:right}h4{margin:18px 0 4px}p{margin:0 0 8px}</style></head><body>');
+    w.document.write(printContents);
+    w.document.write('</body></html>');
+    w.document.close();
+    w.print();
+    return false;
+  }
+
   // Main generate report function
   function gen_reports() {
 
@@ -466,6 +500,8 @@
       items_report();
     } else if (!report_credit_notes.hasClass('hide')) {
       credit_notes_report();
+    } else if (!report_customer_ledger.hasClass('hide')) {
+      customer_ledger_report();
     }
   }
 </script>

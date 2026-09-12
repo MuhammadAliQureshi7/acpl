@@ -3743,6 +3743,45 @@ class purchase extends AdminController
     }
 
     /**
+     * Individual vendor ledger report.
+     * Purchase invoices are credits, approved payments to the vendor are debits.
+     * Filters: vendor_ledger_from, vendor_ledger_to, report_vendors
+     */
+    public function vendor_ledger()
+    {
+        if ($this->input->is_ajax_request()) {
+            $this->load->model('currencies_model');
+            $currency = $this->currencies_model->get_base_currency();
+
+            $from = to_sql_date($this->input->post('vendor_ledger_from'));
+            $to   = to_sql_date($this->input->post('vendor_ledger_to'));
+
+            if ($from == '') {
+                $from = null;
+                $to   = null;
+            } elseif ($to == '') {
+                $to = null;
+            }
+
+            if ($from === null) {
+                $period = _l('report_sales_months_all_time');
+            } elseif ($to === null) {
+                $period = _l('report_sales_from_date') . ': ' . _d($from);
+            } else {
+                $period = _d($from) . ' - ' . _d($to);
+            }
+
+            $vendors = $this->input->post('report_vendors');
+            $vendors = is_array($vendors) ? array_map('intval', $vendors) : [];
+
+            $ledgers = $this->purchase_model->get_vendor_ledger($vendors, $from, $to);
+
+            echo $this->purchase_model->build_vendor_ledger_report_html($ledgers, $currency, $period);
+            die();
+        }
+    }
+
+    /**
      * { invoices }
      * @return view
      */

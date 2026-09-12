@@ -31,9 +31,20 @@ module.exports = {
   theme: {
     extend: {
       fontSize: {
-        sm: "0.8rem",
-        base: "0.9rem",
-        normal: "0.84375rem",
+        xs: ["0.6rem", { lineHeight: "0.8rem" }],
+        sm: "0.64rem",
+        base: "0.72rem",
+        normal: "0.675rem",
+        lg: ["0.9rem", { lineHeight: "1.4rem" }],
+        xl: ["1rem", { lineHeight: "1.4rem" }],
+        "2xl": ["1.2rem", { lineHeight: "1.6rem" }],
+        "3xl": ["1.5rem", { lineHeight: "1.8rem" }],
+        "4xl": ["1.8rem", { lineHeight: "2rem" }],
+        "5xl": ["2.4rem", { lineHeight: "1" }],
+        "6xl": ["3rem", { lineHeight: "1" }],
+        "7xl": ["3.6rem", { lineHeight: "1" }],
+        "8xl": ["4.8rem", { lineHeight: "1" }],
+        "9xl": ["6.4rem", { lineHeight: "1" }],
       },
       animation: {
         "spin-slow": "spin 3s linear infinite",

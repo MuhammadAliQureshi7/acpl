@@ -794,4 +794,309 @@ class Reports_model extends App_Model
 
         return (float) $row['qty'] * (float) $row['rate'] + (float) ($row['total_tax'] ?? 0);
     }
+
+    /**
+     * Customer ledger movements and opening balance.
+     *
+     * Invoices are debits, payments received and credit notes are credits.
+     * Customers without any movement (before or inside the period) are skipped.
+     *
+     * @param array       $clientIds customer ids, empty for all customers
+     * @param string|null $from      period start (Y-m-d), null for all time
+     * @param string|null $to        period end (Y-m-d), null for all time
+     * @return array keyed by customer id
+     */
+    public function get_customer_ledger($clientIds = [], $from = null, $to = null)
+    {
+        $clients = $this->get_ledger_customers($clientIds);
+        $ledgers = [];
+
+        if (count($clients) === 0) {
+            return $ledgers;
+        }
+
+        $ids = [];
+        foreach ($clients as $client) {
+            $ids[] = (int) $client['userid'];
+        }
+
+        $opening = $from === null ? [] : $this->get_ledger_opening_balances($ids, $from);
+
+        $rowsByCustomer = [];
+        $rows           = array_merge(
+            $this->get_ledger_invoice_rows($ids, $from, $to),
+            $this->get_ledger_payment_rows($ids, $from, $to),
+            $this->get_ledger_credit_note_rows($ids, $from, $to)
+        );
+        foreach ($rows as $row) {
+            $rowsByCustomer[$row['clientid']][] = $row;
+        }
+
+        foreach ($clients as $client) {
+            $clientId     = (int) $client['userid'];
+            $clientRows   = isset($rowsByCustomer[$clientId]) ? $rowsByCustomer[$clientId] : [];
+            $openingValue = isset($opening[$clientId]) ? $opening[$clientId] : 0;
+
+            if ($openingValue == 0 && count($clientRows) === 0) {
+                continue;
+            }
+
+            usort($clientRows, function ($a, $b) {
+                return [$a['date'], $a['sequence'], $a['id']] <=> [$b['date'], $b['sequence'], $b['id']];
+            });
+
+            $balance = $openingValue;
+            $debit   = 0;
+            $credit  = 0;
+
+            foreach ($clientRows as &$row) {
+                $balance += $row['debit'] - $row['credit'];
+                $row['balance'] = $balance;
+                $debit += $row['debit'];
+                $credit += $row['credit'];
+            }
+            unset($row);
+
+            $ledgers[$clientId] = [
+                'company'      => $client['company'] != '' ? $client['company'] : ('Customer #' . $clientId),
+                'opening'      => $openingValue,
+                'rows'         => $clientRows,
+                'total_debit'  => $debit,
+                'total_credit' => $credit,
+                'closing'      => $balance,
+            ];
+        }
+
+        return $ledgers;
+    }
+
+    /**
+     * Renders the customer ledger report, one table per customer.
+     *
+     * @param array  $ledgers  result of get_customer_ledger()
+     * @param object $currency base currency object
+     * @param string $period   formatted report period shown under each customer name
+     * @return string
+     */
+    public function build_customer_ledger_report_html($ledgers, $currency, $period = '')
+    {
+        if (count($ledgers) === 0) {
+            return '<p class="text-muted no-mbot">' . _l('report_ledger_no_records') . '</p>';
+        }
+
+        $html = '';
+        foreach ($ledgers as $ledger) {
+            $html .= '<h4 class="tw-font-semibold tw-text-lg tw-text-neutral-700">' . htmlspecialchars($ledger['company']) . '</h4>';
+            if ($period != '') {
+                $html .= '<p class="text-muted">' . $period . '</p>';
+            }
+
+            $html .= '<div class="table-responsive"><table class="table table-bordered customer-ledger-report-table">';
+            $html .= '<thead><tr>';
+            $html .= '<th>' . _l('report_ledger_c_no') . '</th>';
+            $html .= '<th>' . _l('report_ledger_date') . '</th>';
+            $html .= '<th>' . _l('report_ledger_type') . '</th>';
+            $html .= '<th width="35%">' . _l('invoice_description') . '</th>';
+            $html .= '<th class="text-right">' . _l('report_ledger_debit') . '</th>';
+            $html .= '<th class="text-right">' . _l('report_ledger_credit') . '</th>';
+            $html .= '<th class="text-right">' . _l('report_ledger_balance') . '</th>';
+            $html .= '</tr></thead><tbody>';
+
+            $html .= '<tr>';
+            $html .= '<td>0</td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+            $html .= '<td>' . _l('report_ledger_opening_balance') . '</td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+            $html .= '<td class="text-right">' . app_format_money($ledger['opening'], $currency->name) . '</td>';
+            $html .= '</tr>';
+
+            foreach ($ledger['rows'] as $row) {
+                $no = $row['url'] != ''
+                    ? '<a href="' . $row['url'] . '" target="_blank">' . htmlspecialchars($row['no']) . '</a>'
+                    : htmlspecialchars($row['no']);
+
+                $html .= '<tr>';
+                $html .= '<td>' . $no . '</td>';
+                $html .= '<td>' . _d($row['date']) . '</td>';
+                $html .= '<td>' . $row['type'] . '</td>';
+                $html .= '<td>' . htmlspecialchars($row['description']) . '</td>';
+                $html .= '<td class="text-right">' . ($row['debit'] != 0 ? app_format_money($row['debit'], $currency->name) : '') . '</td>';
+                $html .= '<td class="text-right">' . ($row['credit'] != 0 ? app_format_money($row['credit'], $currency->name) : '') . '</td>';
+                $html .= '<td class="text-right">' . app_format_money($row['balance'], $currency->name) . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '<tr class="active">';
+            $html .= '<td colspan="4"><strong>' . _l('report_ledger_total') . '</strong></td>';
+            $html .= '<td class="text-right"><strong>' . app_format_money($ledger['total_debit'], $currency->name) . '</strong></td>';
+            $html .= '<td class="text-right"><strong>' . app_format_money($ledger['total_credit'], $currency->name) . '</strong></td>';
+            $html .= '<td class="text-right"><strong>' . app_format_money($ledger['closing'], $currency->name) . '</strong></td>';
+            $html .= '</tr>';
+
+            $html .= '</tbody></table></div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * Customers the ledger report is generated for.
+     */
+    private function get_ledger_customers($clientIds)
+    {
+        $this->db->select('userid, company');
+        $this->db->from(db_prefix() . 'clients');
+        if (count($clientIds) > 0) {
+            $this->db->where_in('userid', $clientIds);
+        }
+        $this->db->order_by('company', 'ASC');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Amount brought forward per customer: invoices minus payments and credit notes dated before the period.
+     */
+    private function get_ledger_opening_balances($clientIds, $before)
+    {
+        $prefix   = db_prefix();
+        $in       = implode(',', $clientIds);
+        $before   = $this->db->escape_str($before);
+        $balances = [];
+
+        $invoices = $this->db->query('SELECT clientid, SUM(total) as amount FROM ' . $prefix . 'invoices
+            WHERE status != 5 AND clientid IN (' . $in . ') AND date < "' . $before . '"
+            GROUP BY clientid')->result_array();
+        foreach ($invoices as $row) {
+            $balances[$row['clientid']] = (float) $row['amount'];
+        }
+
+        $payments = $this->db->query('SELECT ' . $prefix . 'invoices.clientid, SUM(' . $prefix . 'invoicepaymentrecords.amount) as amount
+            FROM ' . $prefix . 'invoicepaymentrecords
+            JOIN ' . $prefix . 'invoices ON ' . $prefix . 'invoices.id = ' . $prefix . 'invoicepaymentrecords.invoiceid
+            WHERE ' . $prefix . 'invoices.status != 5 AND ' . $prefix . 'invoices.clientid IN (' . $in . ')
+            AND ' . $prefix . 'invoicepaymentrecords.date < "' . $before . '"
+            GROUP BY ' . $prefix . 'invoices.clientid')->result_array();
+        foreach ($payments as $row) {
+            $balances[$row['clientid']] = (isset($balances[$row['clientid']]) ? $balances[$row['clientid']] : 0) - (float) $row['amount'];
+        }
+
+        $creditNotes = $this->db->query('SELECT clientid, SUM(total) as amount FROM ' . $prefix . 'creditnotes
+            WHERE status != 3 AND clientid IN (' . $in . ') AND date < "' . $before . '"
+            GROUP BY clientid')->result_array();
+        foreach ($creditNotes as $row) {
+            $balances[$row['clientid']] = (isset($balances[$row['clientid']]) ? $balances[$row['clientid']] : 0) - (float) $row['amount'];
+        }
+
+        return $balances;
+    }
+
+    private function get_ledger_invoice_rows($clientIds, $from, $to)
+    {
+        $prefix = db_prefix();
+        $sql    = 'SELECT id, clientid, date, total FROM ' . $prefix . 'invoices
+            WHERE status != 5 AND clientid IN (' . implode(',', $clientIds) . ')'
+            . $this->get_ledger_period_where($prefix . 'invoices.date', $from, $to);
+
+        $rows = [];
+        foreach ($this->db->query($sql)->result_array() as $invoice) {
+            $rows[] = [
+                'id'          => (int) $invoice['id'],
+                'clientid'    => (int) $invoice['clientid'],
+                'date'        => $invoice['date'],
+                'sequence'    => 1,
+                'no'          => format_invoice_number($invoice['id']),
+                'url'         => admin_url('invoices/list_invoices/' . $invoice['id']),
+                'type'        => 'INV',
+                'description' => _l('report_ledger_invoice'),
+                'debit'       => (float) $invoice['total'],
+                'credit'      => 0,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function get_ledger_payment_rows($clientIds, $from, $to)
+    {
+        $prefix = db_prefix();
+        $sql    = 'SELECT ' . $prefix . 'invoicepaymentrecords.id, ' . $prefix . 'invoices.clientid,
+            ' . $prefix . 'invoicepaymentrecords.date, ' . $prefix . 'invoicepaymentrecords.amount,
+            ' . $prefix . 'payment_modes.name as payment_mode
+            FROM ' . $prefix . 'invoicepaymentrecords
+            JOIN ' . $prefix . 'invoices ON ' . $prefix . 'invoices.id = ' . $prefix . 'invoicepaymentrecords.invoiceid
+            LEFT JOIN ' . $prefix . 'payment_modes ON ' . $prefix . 'payment_modes.id = ' . $prefix . 'invoicepaymentrecords.paymentmode
+            WHERE ' . $prefix . 'invoices.status != 5
+            AND ' . $prefix . 'invoices.clientid IN (' . implode(',', $clientIds) . ')'
+            . $this->get_ledger_period_where($prefix . 'invoicepaymentrecords.date', $from, $to);
+
+        $rows = [];
+        foreach ($this->db->query($sql)->result_array() as $payment) {
+            $description = _l('report_ledger_payment');
+            if ($payment['payment_mode'] != '') {
+                $description .= ' - ' . $payment['payment_mode'];
+            }
+
+            $rows[] = [
+                'id'          => (int) $payment['id'],
+                'clientid'    => (int) $payment['clientid'],
+                'date'        => $payment['date'],
+                'sequence'    => 2,
+                'no'          => $payment['id'],
+                'url'         => admin_url('payments/payment/' . $payment['id']),
+                'type'        => 'PAY',
+                'description' => $description,
+                'debit'       => 0,
+                'credit'      => (float) $payment['amount'],
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function get_ledger_credit_note_rows($clientIds, $from, $to)
+    {
+        $prefix = db_prefix();
+        $sql    = 'SELECT id, clientid, date, total FROM ' . $prefix . 'creditnotes
+            WHERE status != 3 AND clientid IN (' . implode(',', $clientIds) . ')'
+            . $this->get_ledger_period_where($prefix . 'creditnotes.date', $from, $to);
+
+        $rows = [];
+        foreach ($this->db->query($sql)->result_array() as $creditNote) {
+            $rows[] = [
+                'id'          => (int) $creditNote['id'],
+                'clientid'    => (int) $creditNote['clientid'],
+                'date'        => $creditNote['date'],
+                'sequence'    => 3,
+                'no'          => format_credit_note_number($creditNote['id']),
+                'url'         => admin_url('credit_notes/credit_note/' . $creditNote['id']),
+                'type'        => 'CN',
+                'description' => _l('report_ledger_credit_note'),
+                'debit'       => 0,
+                'credit'      => (float) $creditNote['total'],
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Date restriction for the ledger queries. No period means all time.
+     */
+    private function get_ledger_period_where($field, $from, $to)
+    {
+        if ($from === null) {
+            return '';
+        }
+
+        $from = $this->db->escape_str($from);
+
+        if ($to === null || $to === '') {
+            return ' AND ' . $field . ' >= "' . $from . '"';
+        }
+
+        return ' AND (' . $field . ' BETWEEN "' . $from . '" AND "' . $this->db->escape_str($to) . '")';
+    }
 }

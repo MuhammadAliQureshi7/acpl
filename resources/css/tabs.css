@@ -279,7 +279,7 @@
   }
 
   .horizontal-scrollable-tabs .scroller {
-    @apply tw-text-[0.86rem] tw-hidden tw-bg-transparent tw-font-semibold tw-cursor-pointer tw-text-neutral-600 tw-border-b tw-border-solid tw-border-neutral-200 tw-p-2.5 hover:tw-text-neutral-500 tw-mb-px;
+    @apply tw-text-[0.688rem] tw-hidden tw-bg-transparent tw-font-semibold tw-cursor-pointer tw-text-neutral-600 tw-border-b tw-border-solid tw-border-neutral-200 tw-p-2.5 hover:tw-text-neutral-500 tw-mb-px;
   }
 
   .horizontal-scrollable-tabs .scroller.disabled {

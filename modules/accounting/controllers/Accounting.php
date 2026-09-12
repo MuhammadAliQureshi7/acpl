@@ -2893,6 +2893,21 @@ class Accounting extends AdminController
     }
 
     /**
+     * report account ledger
+     * @return view
+     */
+    public function rp_account_ledger(){
+        $this->load->model('currencies_model');
+        $data['title'] = _l('account_ledger');
+        $data['from_date'] = date('Y-m-01');
+        $data['to_date'] = date('Y-m-d');
+        $data['accounting_method'] = get_option('acc_accounting_method');
+        $data['currency'] = $this->currencies_model->get_base_currency();
+        $data['accounts'] = $this->accounting_model->get_accounts();
+        $this->load->view('report/includes/account_ledger', $data);
+    }
+
+    /**
      * report transaction list by date
      * @return view
      */
@@ -3791,6 +3806,9 @@ class Accounting extends AdminController
                 break;
             case 'account_history':
                     $data['data_report'] = $this->accounting_model->get_data_account_history($data_filter);
+                break;
+            case 'account_ledger':
+                    $data['data_report'] = $this->accounting_model->get_data_account_ledger($data_filter);
                 break;
             case 'tax_detail_report':
                     $data['data_report'] = $this->accounting_model->get_data_tax_detail_report($data_filter);

@@ -5958,4 +5958,278 @@ class Purchase_model extends App_Model
 
         return (float) $row['qty'] * (float) $row['rate'] + (float) ($row['total_tax'] ?? 0);
     }
+
+    /**
+     * Vendor ledger movements and opening balance.
+     *
+     * Purchase invoices are credits (amount payable grows), approved payments
+     * to the vendor are debits. Only payments with approval_status 2 count,
+     * matching purinvoice_left_to_pay().
+     * Vendors without any movement (before or inside the period) are skipped.
+     *
+     * @param array       $vendorIds vendor ids, empty for all vendors
+     * @param string|null $from      period start (Y-m-d), null for all time
+     * @param string|null $to        period end (Y-m-d), null for all time
+     * @return array keyed by vendor id
+     */
+    public function get_vendor_ledger($vendorIds = [], $from = null, $to = null)
+    {
+        $vendors = $this->get_vendor_ledger_vendors($vendorIds);
+        $ledgers = [];
+
+        if (count($vendors) === 0) {
+            return $ledgers;
+        }
+
+        $ids = [];
+        foreach ($vendors as $vendor) {
+            $ids[] = (int) $vendor['userid'];
+        }
+
+        $opening = $from === null ? [] : $this->get_vendor_ledger_opening_balances($ids, $from);
+
+        $rowsByVendor = [];
+        $rows         = array_merge(
+            $this->get_vendor_ledger_invoice_rows($ids, $from, $to),
+            $this->get_vendor_ledger_payment_rows($ids, $from, $to)
+        );
+        foreach ($rows as $row) {
+            $rowsByVendor[$row['vendorid']][] = $row;
+        }
+
+        foreach ($vendors as $vendor) {
+            $vendorId      = (int) $vendor['userid'];
+            $vendorRows    = isset($rowsByVendor[$vendorId]) ? $rowsByVendor[$vendorId] : [];
+            $openingValue  = isset($opening[$vendorId]) ? $opening[$vendorId] : 0;
+
+            if ($openingValue == 0 && count($vendorRows) === 0) {
+                continue;
+            }
+
+            usort($vendorRows, function ($a, $b) {
+                return [$a['date'], $a['sequence'], $a['id']] <=> [$b['date'], $b['sequence'], $b['id']];
+            });
+
+            $balance = $openingValue;
+            $debit   = 0;
+            $credit  = 0;
+
+            foreach ($vendorRows as &$row) {
+                $balance += $row['credit'] - $row['debit'];
+                $row['balance'] = $balance;
+                $debit += $row['debit'];
+                $credit += $row['credit'];
+            }
+            unset($row);
+
+            $ledgers[$vendorId] = [
+                'company'      => $vendor['company'] != '' ? $vendor['company'] : ('Vendor #' . $vendorId),
+                'opening'      => $openingValue,
+                'rows'         => $vendorRows,
+                'total_debit'  => $debit,
+                'total_credit' => $credit,
+                'closing'      => $balance,
+            ];
+        }
+
+        return $ledgers;
+    }
+
+    /**
+     * Renders the vendor ledger report, one table per vendor.
+     *
+     * @param array  $ledgers  result of get_vendor_ledger()
+     * @param object $currency base currency object
+     * @param string $period   formatted report period shown under each vendor name
+     * @return string
+     */
+    public function build_vendor_ledger_report_html($ledgers, $currency, $period = '')
+    {
+        if (count($ledgers) === 0) {
+            return '<p class="text-muted no-mbot">' . _l('report_ledger_no_records') . '</p>';
+        }
+
+        $html = '';
+        foreach ($ledgers as $ledger) {
+            $html .= '<h4 class="font-medium">' . htmlspecialchars($ledger['company']) . '</h4>';
+            if ($period != '') {
+                $html .= '<p class="text-muted">' . $period . '</p>';
+            }
+
+            $html .= '<div class="table-responsive"><table class="table table-bordered vendor-ledger-report-table">';
+            $html .= '<thead><tr>';
+            $html .= '<th>' . _l('report_ledger_c_no') . '</th>';
+            $html .= '<th>' . _l('report_ledger_date') . '</th>';
+            $html .= '<th>' . _l('report_ledger_type') . '</th>';
+            $html .= '<th width="35%">' . _l('invoice_description') . '</th>';
+            $html .= '<th class="text-right">' . _l('report_ledger_debit') . '</th>';
+            $html .= '<th class="text-right">' . _l('report_ledger_credit') . '</th>';
+            $html .= '<th class="text-right">' . _l('report_ledger_balance') . '</th>';
+            $html .= '</tr></thead><tbody>';
+
+            $html .= '<tr>';
+            $html .= '<td>0</td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+            $html .= '<td>' . _l('report_ledger_opening_balance') . '</td>';
+            $html .= '<td></td>';
+            $html .= '<td></td>';
+            $html .= '<td class="text-right">' . app_format_money($ledger['opening'], $currency->name) . '</td>';
+            $html .= '</tr>';
+
+            foreach ($ledger['rows'] as $row) {
+                $no = $row['url'] != ''
+                    ? '<a href="' . $row['url'] . '" target="_blank">' . htmlspecialchars($row['no']) . '</a>'
+                    : htmlspecialchars($row['no']);
+
+                $html .= '<tr>';
+                $html .= '<td>' . $no . '</td>';
+                $html .= '<td>' . _d($row['date']) . '</td>';
+                $html .= '<td>' . $row['type'] . '</td>';
+                $html .= '<td>' . htmlspecialchars($row['description']) . '</td>';
+                $html .= '<td class="text-right">' . ($row['debit'] != 0 ? app_format_money($row['debit'], $currency->name) : '') . '</td>';
+                $html .= '<td class="text-right">' . ($row['credit'] != 0 ? app_format_money($row['credit'], $currency->name) : '') . '</td>';
+                $html .= '<td class="text-right">' . app_format_money($row['balance'], $currency->name) . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '<tr class="active">';
+            $html .= '<td colspan="4"><strong>' . _l('report_ledger_total') . '</strong></td>';
+            $html .= '<td class="text-right"><strong>' . app_format_money($ledger['total_debit'], $currency->name) . '</strong></td>';
+            $html .= '<td class="text-right"><strong>' . app_format_money($ledger['total_credit'], $currency->name) . '</strong></td>';
+            $html .= '<td class="text-right"><strong>' . app_format_money($ledger['closing'], $currency->name) . '</strong></td>';
+            $html .= '</tr>';
+
+            $html .= '</tbody></table></div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * Vendors the ledger report is generated for.
+     */
+    private function get_vendor_ledger_vendors($vendorIds)
+    {
+        $this->db->select('userid, company');
+        $this->db->from(db_prefix() . 'pur_vendor');
+        if (count($vendorIds) > 0) {
+            $this->db->where_in('userid', $vendorIds);
+        }
+        $this->db->order_by('company', 'ASC');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Amount payable brought forward per vendor: invoices minus approved payments dated before the period.
+     */
+    private function get_vendor_ledger_opening_balances($vendorIds, $before)
+    {
+        $prefix   = db_prefix();
+        $in       = implode(',', $vendorIds);
+        $before   = $this->db->escape_str($before);
+        $balances = [];
+
+        $invoices = $this->db->query('SELECT vendor, SUM(total) as amount FROM ' . $prefix . 'pur_invoices
+            WHERE vendor IN (' . $in . ') AND invoice_date < "' . $before . '"
+            GROUP BY vendor')->result_array();
+        foreach ($invoices as $row) {
+            $balances[$row['vendor']] = (float) $row['amount'];
+        }
+
+        $payments = $this->db->query('SELECT ' . $prefix . 'pur_invoices.vendor, SUM(' . $prefix . 'pur_invoice_payment.amount) as amount
+            FROM ' . $prefix . 'pur_invoice_payment
+            JOIN ' . $prefix . 'pur_invoices ON ' . $prefix . 'pur_invoices.id = ' . $prefix . 'pur_invoice_payment.pur_invoice
+            WHERE ' . $prefix . 'pur_invoice_payment.approval_status = 2
+            AND ' . $prefix . 'pur_invoices.vendor IN (' . $in . ')
+            AND ' . $prefix . 'pur_invoice_payment.date < "' . $before . '"
+            GROUP BY ' . $prefix . 'pur_invoices.vendor')->result_array();
+        foreach ($payments as $row) {
+            $balances[$row['vendor']] = (isset($balances[$row['vendor']]) ? $balances[$row['vendor']] : 0) - (float) $row['amount'];
+        }
+
+        return $balances;
+    }
+
+    private function get_vendor_ledger_invoice_rows($vendorIds, $from, $to)
+    {
+        $prefix = db_prefix();
+        $sql    = 'SELECT id, vendor, invoice_number, invoice_date, total FROM ' . $prefix . 'pur_invoices
+            WHERE vendor IN (' . implode(',', $vendorIds) . ')'
+            . $this->get_vendor_ledger_period_where($prefix . 'pur_invoices.invoice_date', $from, $to);
+
+        $rows = [];
+        foreach ($this->db->query($sql)->result_array() as $invoice) {
+            $rows[] = [
+                'id'          => (int) $invoice['id'],
+                'vendorid'    => (int) $invoice['vendor'],
+                'date'        => $invoice['invoice_date'],
+                'sequence'    => 1,
+                'no'          => $invoice['invoice_number'],
+                'url'         => admin_url('purchase/purchase_invoice/' . $invoice['id']),
+                'type'        => 'PIN',
+                'description' => _l('report_ledger_purchase_invoice'),
+                'debit'       => 0,
+                'credit'      => (float) $invoice['total'],
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function get_vendor_ledger_payment_rows($vendorIds, $from, $to)
+    {
+        $prefix = db_prefix();
+        $sql    = 'SELECT ' . $prefix . 'pur_invoice_payment.id, ' . $prefix . 'pur_invoices.vendor,
+            ' . $prefix . 'pur_invoice_payment.date, ' . $prefix . 'pur_invoice_payment.amount,
+            ' . $prefix . 'pur_invoice_payment.paymentmode
+            FROM ' . $prefix . 'pur_invoice_payment
+            JOIN ' . $prefix . 'pur_invoices ON ' . $prefix . 'pur_invoices.id = ' . $prefix . 'pur_invoice_payment.pur_invoice
+            WHERE ' . $prefix . 'pur_invoice_payment.approval_status = 2
+            AND ' . $prefix . 'pur_invoices.vendor IN (' . implode(',', $vendorIds) . ')'
+            . $this->get_vendor_ledger_period_where($prefix . 'pur_invoice_payment.date', $from, $to);
+
+        $rows = [];
+        foreach ($this->db->query($sql)->result_array() as $payment) {
+            $description = _l('report_ledger_payment_made');
+            $mode        = $payment['paymentmode'] != '' ? get_payment_mode_name_by_id($payment['paymentmode']) : '';
+            if ($mode != '') {
+                $description .= ' - ' . $mode;
+            }
+
+            $rows[] = [
+                'id'          => (int) $payment['id'],
+                'vendorid'    => (int) $payment['vendor'],
+                'date'        => $payment['date'],
+                'sequence'    => 2,
+                'no'          => $payment['id'],
+                'url'         => admin_url('purchase/payment_invoice/' . $payment['id']),
+                'type'        => 'PAY',
+                'description' => $description,
+                'debit'       => (float) $payment['amount'],
+                'credit'      => 0,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Date restriction for the vendor ledger queries. No period means all time.
+     */
+    private function get_vendor_ledger_period_where($field, $from, $to)
+    {
+        if ($from === null) {
+            return '';
+        }
+
+        $from = $this->db->escape_str($from);
+
+        if ($to === null || $to === '') {
+            return ' AND ' . $field . ' >= "' . $from . '"';
+        }
+
+        return ' AND (' . $field . ' BETWEEN "' . $from . '" AND "' . $this->db->escape_str($to) . '")';
+    }
 }

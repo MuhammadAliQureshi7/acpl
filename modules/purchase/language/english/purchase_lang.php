@@ -362,3 +362,6 @@ $lang['report_purchase_principle_wise'] = 'Principle Wise Purchase Report';
 $lang['report_purchase_invoice_no'] = 'Purchase Invoice #';
 $lang['report_purchase_invoice_date'] = 'Date';
 $lang['report_no_vendor'] = 'No Vendor';
+$lang['report_vendor_ledger'] = 'Vendor Ledger';
+$lang['report_ledger_purchase_invoice'] = 'Purchase Invoice';
+$lang['report_ledger_payment_made'] = 'Payment Made';

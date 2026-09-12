@@ -1,7 +1,7 @@
 @layer components {
   .btn,
   .btn-group > .btn {
-    @apply tw-rounded-md tw-text-[13.45px] tw-leading-[20px] tw-font-medium;
+    @apply tw-rounded-md tw-text-[10.76px] tw-leading-[20px] tw-font-medium;
   }
 
   .btn-xs,

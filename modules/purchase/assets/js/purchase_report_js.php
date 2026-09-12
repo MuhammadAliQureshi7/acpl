@@ -2,6 +2,7 @@
 var report_import_goods, report_po_voucher,
 report_from_choose, report_po, report_pur_inv,
 report_pur_vendorwise, report_pur_itemwise, report_pur_principleswise,
+report_vendor_ledger, vendor_ledger_filters,
 fnServerParams, 
 statistics_number_of_purchase_orders, 
 statistics_cost_of_purchase_orders;
@@ -17,6 +18,8 @@ statistics_cost_of_purchase_orders;
   report_pur_vendorwise = $('#purchase_vendorwise_report');
   report_pur_itemwise = $('#purchase_itemwise_report');
   report_pur_principleswise = $('#purchase_principleswise_report');
+  report_vendor_ledger = $('#vendor_ledger_report');
+  vendor_ledger_filters = $('#vendor_ledger_filters');
   statistics_number_of_purchase_orders = $('#number-purchase-orders-report');
   statistics_cost_of_purchase_orders = $('#cost-purchase-orders-report');
   report_from_choose = $('#report-time');
@@ -32,7 +35,7 @@ statistics_cost_of_purchase_orders;
     gen_reports();
   });
 
-  $('#report_vendor,#report_item,#report_principle').on('change', function() {
+  $('#report_vendor,#report_item,#report_principle,#vendor-ledger-from,#vendor-ledger-to,#vendor_ledger_vendors').on('change', function() {
     gen_reports();
   });
 
@@ -135,6 +138,7 @@ statistics_cost_of_purchase_orders;
    report_pur_vendorwise.addClass('hide');
    report_pur_itemwise.addClass('hide');
    report_pur_principleswise.addClass('hide');
+   report_vendor_ledger.addClass('hide');
   statistics_cost_of_purchase_orders.addClass('hide');
   statistics_number_of_purchase_orders.addClass('hide');
 
@@ -142,12 +146,13 @@ statistics_cost_of_purchase_orders;
   $('#report_vendor_filter').addClass('hide');
   $('#report_item_filter').addClass('hide');
   $('#report_principle_filter').addClass('hide');
+  vendor_ledger_filters.addClass('hide');
 
   $('select[name="months-report"]').selectpicker('val', 'this_month');
     // Clear custom date picker
       $('#currency').removeClass('hide');
 
-      if (type != 'statistics_number_of_purchase_orders' && type != 'statistics_cost_of_purchase_orders') {
+      if (type != 'statistics_number_of_purchase_orders' && type != 'statistics_cost_of_purchase_orders' && type != 'vendor_ledger') {
         report_from_choose.removeClass('hide');
       }
       if (type == 'list_import_goods') {
@@ -176,6 +181,10 @@ statistics_cost_of_purchase_orders;
         report_po.removeClass('hide');
       }else if(type == 'purchase_invoice_rp'){
         report_pur_inv.removeClass('hide');
+      }else if(type == 'vendor_ledger'){
+        report_vendor_ledger.removeClass('hide');
+        vendor_ledger_filters.removeClass('hide');
+        date_range.addClass('hide');
       }
 
       gen_reports();
@@ -263,6 +272,36 @@ function purchase_detail_print(type) {
   }
   var w = window.open('', '_blank');
   w.document.write('<html><head><title></title></head><body>');
+  w.document.write(printContents);
+  w.document.write('</body></html>');
+  w.document.close();
+  w.print();
+  return false;
+}
+
+function vendor_ledger_report() {
+  "use strict";
+
+  var data = {
+    vendor_ledger_from: $('#vendor-ledger-from').val(),
+    vendor_ledger_to: $('#vendor-ledger-to').val(),
+    report_vendors: $('#vendor_ledger_vendors').val()
+  };
+  $.post(admin_url + 'purchase/vendor_ledger', data).done(function(response) {
+    $('#vendor_ledger_report_content').html(response);
+  });
+}
+
+function vendor_ledger_print() {
+  "use strict";
+
+  var printContents = $('#vendor_ledger_report_content').html();
+  if (!printContents || !$.trim(printContents)) {
+    alert("<?php echo _l('report_generate_first'); ?>");
+    return false;
+  }
+  var w = window.open('', '_blank');
+  w.document.write('<html><head><title></title><style>table{width:100%;border-collapse:collapse;margin-bottom:18px}th,td{border:1px solid #444;padding:4px 6px;font-size:12px}th{background:#eee;text-align:left}.text-right{text-align:right}h4{margin:18px 0 4px}p{margin:0 0 8px}</style></head><body>');
   w.document.write(printContents);
   w.document.write('</body></html>');
   w.document.close();
@@ -447,6 +486,8 @@ function gen_reports() {
     po_report();
   }else if(!report_pur_inv.hasClass('hide')){
     purchase_inv_report();
+  }else if(!report_vendor_ledger.hasClass('hide')){
+    vendor_ledger_report();
   }
 }
 </script>

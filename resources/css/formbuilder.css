@@ -39,7 +39,7 @@
 }
 
 .paragraph-field.form-field {
-  @apply tw-text-neutral-600 tw-text-[14px] tw-leading-[25px];
+  @apply tw-text-neutral-600 tw-text-[11.2px] tw-leading-[20px];
 }
 
 .form-wrap.form-builder .frmb .prev-holder input[type="number"] {

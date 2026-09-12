@@ -16,7 +16,7 @@ html {
 }
 
 body > * {
-  font-size: 13.5px;
+  font-size: 10.8px;
 }
 
 .h4,
@@ -50,8 +50,28 @@ strong {
   font-weight: 500;
 }
 
+h1 {
+  font-size: 28.8px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 19.2px;
+}
+
+h4 {
+  font-size: 14.4px;
+}
+
 h5 {
-  font-size: 13px;
+  font-size: 10.4px;
+}
+
+h6 {
+  font-size: 9.6px;
 }
 
 .animated {
@@ -273,7 +293,7 @@ table .row-options {
   padding: 2px 0 0;
   position: relative;
   left: -9999em;
-  font-size: 12px;
+  font-size: 9.6px;
   color: #cbd5e1;
 }
 
@@ -409,7 +429,7 @@ body.page-small #header {
   color: #fff;
   position: absolute;
   right: 1px;
-  font-size: 11px;
+  font-size: 8.8px;
   top: 13px;
   font-family: Verdana, serif;
   vertical-align: middle;
@@ -443,7 +463,7 @@ body.page-small #header {
 }
 
 .navbar-nav > li > .dropdown-menu.notifications li .media-body {
-  font-size: 13px;
+  font-size: 10.4px;
 }
 
 .navbar-nav > li > .dropdown-menu > li:last-child > a {
@@ -522,7 +542,7 @@ body.page-small #header {
 .sidebar li a {
   color: #f1f5f9;
   padding: 8px 13px;
-  font-size: 13.9px;
+  font-size: 11.12px;
   margin-top: 0.25rem;
   font-weight: 400;
 }
@@ -532,7 +552,7 @@ body.page-small #header {
   display: block;
   float: left;
   width: 18px;
-  font-size: 17px;
+  font-size: 13.6px;
   opacity: 0.65;
 }
 
@@ -554,7 +574,7 @@ body.page-small #header {
 .sidebar li .nav-second-level li a {
   padding: 7px 10px 7px 43px;
   color: #cbd5e1;
-  font-size: 14px;
+  font-size: 11.2px;
   margin-top: 0;
 }
 
@@ -600,7 +620,7 @@ body.page-small #header {
 }
 
 .sidebar li a.logo-text {
-  font-size: 20px;
+  font-size: 16px;
   color: #f1f5f9;
 }
 
@@ -1086,7 +1106,7 @@ label:not(.control-label) {
 }
 
 .medium-icon {
-  font-size: 26px;
+  font-size: 20.8px;
 }
 
 .tooltip-pointer {
@@ -1098,7 +1118,7 @@ label:not(.control-label) {
 }
 
 .email-templates li > a {
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 .email-templates li {
@@ -1138,7 +1158,7 @@ label:not(.control-label) {
   border: 0 !important;
   border-radius: 2px !important;
   margin: 5px 10px 5px 10px !important;
-  font-size: 11px;
+  font-size: 8.8px;
   cursor: pointer;
 }
 
@@ -1162,7 +1182,7 @@ label:not(.control-label) {
 
 .hide-menu {
   padding: 18px 14px 18px 14px;
-  font-size: 14px;
+  font-size: 11.2px;
   float: left;
   color: #475569;
   cursor: pointer;
@@ -1390,7 +1410,7 @@ label:not(.control-label) {
     color: #fff;
     position: absolute;
     right: 0px;
-    font-size: 11px;
+    font-size: 8.8px;
     top: -8px;
     font-family: Verdana, serif;
     vertical-align: middle;
@@ -1493,7 +1513,7 @@ table.table {
 .todo-title {
   padding: 0 0 0 10px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 ul.todo {
@@ -1723,7 +1743,7 @@ body.noscroll .backdrop {
 
 #newsfeed .newsfeed_post .post-content {
   border-bottom: 0;
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 #newsfeed .newsfeed_post .user-comment.panel-footer {
@@ -1812,7 +1832,7 @@ body.noscroll .backdrop {
   text-align: center;
   margin-left: -9px;
   margin-right: 8px;
-  font-size: 15px;
+  font-size: 12px;
   color: #94a3b8;
 }
 
@@ -1839,12 +1859,12 @@ body.noscroll .backdrop {
 }
 
 .task-info-col i {
-  font-size: 16px;
+  font-size: 12.8px;
 }
 
 .task-staff-name {
   vertical-align: middle;
-  font-size: 11px;
+  font-size: 8.8px;
   color: #616161;
   padding-left: 5px;
   padding-right: 5px;
@@ -1861,7 +1881,7 @@ body.noscroll .backdrop {
 }
 
 #task #name {
-  font-size: 18px;
+  font-size: 14.4px;
   font-weight: 500;
 }
 
@@ -1955,7 +1975,7 @@ body.noscroll .backdrop {
   text-align: center;
   color: #fff;
   margin-top: 25px;
-  font-size: 16px;
+  font-size: 12.8px;
 }
 
 #top_search_button button {
@@ -1963,7 +1983,7 @@ body.noscroll .backdrop {
   height: 63px;
   width: 60px;
   padding: 6px 0 5px 5px;
-  font-size: 16px;
+  font-size: 12.8px;
   background: transparent;
 }
 
@@ -2057,7 +2077,7 @@ ul.search-results {
   width: 100%;
   text-align: center;
   line-height: 40px;
-  font-size: 50px;
+  font-size: 40px;
 }
 
 table .goal-progress {
@@ -2065,7 +2085,7 @@ table .goal-progress {
 }
 
 table .goal-percent {
-  font-size: 10px;
+  font-size: 8px;
   text-align: center;
   left: 1px;
   top: 22px;
@@ -2126,7 +2146,7 @@ table .goal-percent {
 }
 
 .attachment-icon-preview {
-  font-size: 18px;
+  font-size: 14.4px;
   color: #64748b;
   margin-right: 15px;
 }
@@ -2134,7 +2154,7 @@ table .goal-percent {
 .attachment-preview-icon-small {
   color: #64748b;
   margin-right: 5px;
-  font-size: 13px;
+  font-size: 10.4px;
 }
 
 #dropzoneDragArea,
@@ -2168,11 +2188,11 @@ table .goal-percent {
 }
 
 .font-medium {
-  font-size: 15px !important;
+  font-size: 12px !important;
 }
 
 .font-medium-xs {
-  font-size: 13px !important;
+  font-size: 10.4px !important;
 }
 
 .home-summary a:hover,
@@ -2387,7 +2407,7 @@ table.items tr.main td {
   background: #f8fafc;
   padding: 3px 7px;
   border-top-right-radius: 6px;
-  font-size: 11px;
+  font-size: 8.8px;
 }
 
 #kan-ban li,
@@ -2439,7 +2459,7 @@ table.items tr.main td {
 }
 
 .table .task-icon {
-  font-size: 11px;
+  font-size: 8.8px;
   margin-left: 7px;
   margin-right: -3px;
 }
@@ -2586,7 +2606,7 @@ table.items tr.main td {
 
 .tasks-btn-settings-fix {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 10.4px;
   border-radius: 8px;
 }
 
@@ -2628,7 +2648,7 @@ table.items tr.main td {
   margin-left: -20px;
   padding-left: 4.5px;
   padding-top: 3px;
-  font-size: 10px;
+  font-size: 8px;
 }
 
 textarea[name="checklist-box"] {
@@ -2638,7 +2658,7 @@ textarea[name="checklist-box"] {
 textarea[name="checklist-description"] {
   resize: none;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 11.2px;
   border-radius: 3px;
   padding: 0 5px 0px 5px;
   border: 0;
@@ -2659,7 +2679,7 @@ textarea[name="checklist-description"]:disabled {
 }
 
 .task-info h5 {
-  font-size: 14px;
+  font-size: 11.2px;
   margin: 0;
   font-weight: 400;
   color: #64748b;
@@ -2685,7 +2705,7 @@ textarea[name="checklist-description"]:disabled {
   padding: 0;
   max-width: 600px;
   list-style: none;
-  font-size: 13px;
+  font-size: 10.4px;
   line-height: 20px;
 }
 
@@ -2713,7 +2733,7 @@ textarea[name="checklist-description"]:disabled {
   margin: 0;
   padding: 0;
   min-height: 20px;
-  font-size: 13px;
+  font-size: 10.4px;
   line-height: 20px;
 }
 
@@ -2750,7 +2770,7 @@ textarea[name="checklist-description"]:disabled {
   overflow: hidden;
   border: 0;
   background: transparent;
-  font-size: 12px;
+  font-size: 9.6px;
   line-height: 1;
   text-align: center;
   font-weight: bold;
@@ -2912,7 +2932,7 @@ textarea[name="checklist-description"]:disabled {
   text-align: center;
   text-indent: 0;
   color: #fff;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: normal;
 }
 
@@ -3067,12 +3087,12 @@ textarea[name="checklist-description"]:disabled {
 }
 
 .announcement small {
-  font-size: 11px;
+  font-size: 8.8px;
   color: #333;
 }
 
 .announcement {
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 .kan-ban-content .article-group:first-child a + p {
@@ -3091,7 +3111,7 @@ textarea[name="checklist-description"]:disabled {
 
 .project-percent {
   position: absolute;
-  font-size: 33px;
+  font-size: 26.4px;
   font-weight: 500;
   top: 35%;
   left: 0;
@@ -3174,7 +3194,7 @@ a._timer:focus {
 }
 
 .project-progress-bars i {
-  font-size: 24px;
+  font-size: 19.2px;
 }
 
 .project_invoices .new-invoice-list {
@@ -3222,7 +3242,7 @@ a._timer:focus {
 
 .jquery-comments [contentEditable="true"]:empty:not(:focus):before {
   color: #a1b4cc;
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 .jquery-comments .textarea-wrapper .upload.inline-button {
@@ -3627,7 +3647,7 @@ a._timer:focus {
   top: -5px;
   color: #4b5158;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 9.6px;
   font-weight: 500;
 }
 
@@ -3669,7 +3689,7 @@ a._timer:focus {
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
   box-shadow: none;
-  font-size: 15px;
+  font-size: 12px;
 }
 
 .milestone-column .ui-sortable-placeholder {
@@ -3959,7 +3979,7 @@ li.task.overdue-task .panel-body {
 }
 
 .task-modal-single .trigger i {
-  font-size: 10px;
+  font-size: 8px;
 }
 
 .task-single-menu .popover {
@@ -3984,7 +4004,7 @@ li.task.overdue-task .panel-body {
 }
 
 .task-single-menu ul li a {
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 .tc-content ul,
@@ -4072,7 +4092,7 @@ li.task.overdue-task .panel-body {
 }
 
 .menu-dots a > i {
-  font-size: 11px;
+  font-size: 8.8px;
 }
 
 .tilt.right {
@@ -4107,7 +4127,7 @@ li.task.overdue-task .panel-body {
 
 .lead-info-heading {
   background: #f1f5f9;
-  font-size: 18px;
+  font-size: 14.4px;
   padding: 7px;
   border-radius: 3px;
   margin-bottom: 15px;
@@ -4116,7 +4136,7 @@ li.task.overdue-task .panel-body {
 .lead-info-heading h4 {
   color: #0f172a;
   font-weight: 500;
-  font-size: 13.5px;
+  font-size: 10.8px;
   margin: 0px;
 }
 
@@ -4209,7 +4229,7 @@ ul.tagit li.tagit-choice-read-only {
   color: #475569;
   border: 1px solid #cbd5e1;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 10.4px;
   border-radius: 4px;
 }
 
@@ -4239,7 +4259,7 @@ ul.tagit-autocomplete .ui-menu-item-wrapper {
 
 ul.tagit-autocomplete .ui-menu-item-wrapper {
   margin-right: -6px !important;
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 ul.tagit-autocomplete .ui-menu-item-wrapper.ui-state-active,
@@ -4332,7 +4352,7 @@ ul.tagit li.tagit-choice:hover {
   color: #2d2d2d;
   border: 1px solid #e2e8f0;
   background: #fff;
-  font-size: 12.5px;
+  font-size: 10px;
 }
 
 .label-tag:last-child {
@@ -4356,7 +4376,7 @@ table .tags-labels .label-tag,
 }
 
 table .tags-in-table-row .label-tag {
-  font-size: 12.5px;
+  font-size: 10px;
 }
 
 table.dataTable tbody .tags-labels .label-tag:hover {
@@ -4393,7 +4413,7 @@ table .dtr-data .tags-labels {
 #project_view_name .bootstrap-select button[data-id="project_top"],
 #project_view_name .bootstrap-select button[data-id="project_top"]:focus,
 #project_view_name .bootstrap-select button[data-id="project_top"]:hover {
-  font-size: 19px;
+  font-size: 15.2px;
   font-weight: 500;
   height: auto;
   background: transparent;
@@ -4457,7 +4477,7 @@ table .dtr-data .tags-labels {
   float: right;
   margin-left: 10px;
   margin-top: 1px;
-  font-size: 17px;
+  font-size: 13.6px;
 }
 
 .setup-menu-loading {
@@ -4484,7 +4504,7 @@ table .dtr-data .tags-labels {
   font-weight: 600;
   position: absolute;
   color: #1e293b;
-  font-size: 1.125rem;
+  font-size: 0.9rem;
   line-height: 1.75rem;
   top: -48px;
   left: 0px;
@@ -4503,7 +4523,7 @@ table .dtr-data .tags-labels {
 }
 
 .mce-btn button {
-  font-size: 13px !important;
+  font-size: 10.4px !important;
 }
 
 .simple-editor .mce-container.mce-panel.mce-edit-area {
@@ -4533,7 +4553,7 @@ table .dtr-data .tags-labels {
 }
 
 .font-size-14 {
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 .hr-10 {
@@ -4771,7 +4791,7 @@ body.system-popup {
 .system-popup .popup-message {
   font-family: "Helvetica";
   font-weight: 600;
-  font-size: 38px;
+  font-size: 30.4px;
 }
 
 .system-popup .system-popup-close {
@@ -4821,7 +4841,7 @@ body.system-popup {
   }
 
   .system-popup .popup-message {
-    font-size: 18px;
+    font-size: 14.4px;
     max-width: 100%;
   }
 
@@ -4923,7 +4943,7 @@ div[data-container] {
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 10.4px;
 }
 
 [dir="rtl"] .screen-options-btn {
@@ -4943,7 +4963,7 @@ div[data-container] {
   float: right !important;
   margin-top: 11px !important;
   margin-right: 18px !important;
-  font-size: 13px !important;
+  font-size: 10.4px !important;
   cursor: pointer !important;
 }
 
@@ -5068,7 +5088,7 @@ td[align="center"] {
 .gdpr-purpose .gdpr-purpose-heading {
   margin-top: 0;
   margin-bottom: 0;
-  font-size: 16px;
+  font-size: 12.8px;
   font-weight: 500;
   color: #5a5a5a;
 }
@@ -5113,7 +5133,7 @@ body.media {
 .gpicker {
   height: 14px;
   font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 11px;
+  font-size: 8.8px;
   color: #4c4c4c;
   text-decoration: none;
   padding: 1px 7px 5px 3px;
@@ -5205,7 +5225,7 @@ div[contenteditable]:focus {
 .bootstrap-select.task-action-select.btn-default.active,
 .bootstrap-select.task-action-select.open > .dropdown-toggle.btn-default {
   color: #64748b !important;
-  font-size: 13.5px;
+  font-size: 10.8px;
   margin-bottom: 0;
   margin-top: 0;
   box-shadow: none;
@@ -5304,4 +5324,24 @@ div[contenteditable]:focus {
   background: #f8fafc;
   padding: 8px;
   border-radius: 4px;
+}
+
+/* Accounting reports home */
+body.accounting.report .content {
+  font-size: 8.64px;
+}
+
+body.accounting.report .content h4 {
+  font-size: 11.52px;
+}
+
+/* Profit and Loss 12 months: scale the wide table down to the page width */
+body.accounting.rp_profit_and_loss_12_months .page-size2 {
+  container-type: inline-size;
+  overflow-x: auto;
+}
+
+body.accounting.rp_profit_and_loss_12_months .page-size2 table.tree {
+  font-size: 9px;
+  font-size: min(1em, 0.85cqw);
 }

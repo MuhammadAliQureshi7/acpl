@@ -273,7 +273,7 @@ div.dataTables_wrapper div.dataTables_processing {
   margin-left: 0 !important;
   width: 80px !important;
   transition: width 0.3s ease;
-  font-size: 14px;
+  font-size: 11.2px;
 }
 
 .dataTables_filter input:focus {
@@ -354,7 +354,7 @@ table.dataTable tbody td {
 }
 
 table.dataTable thead > tr > th {
-  @apply tw-whitespace-nowrap tw-text-[13.5px] tw-text-neutral-600 tw-bg-neutral-50;
+  @apply tw-whitespace-nowrap tw-text-[10.8px] tw-text-neutral-600 tw-bg-neutral-50;
 }
 
 .table.dataTable > thead:first-child > tr:first-child > th,

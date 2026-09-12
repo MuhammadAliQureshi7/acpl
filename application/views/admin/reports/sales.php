@@ -135,6 +135,18 @@
                             <?php echo _l('report_sales_principle_wise'); ?>
                         </a>
                     </li>
+                    <li>
+                        <a href="#"
+                            class="group tw-font-medium tw-px-3 tw-py-3 tw-text-neutral-500 hover:tw-text-neutral-800 active:tw-text-neutral-800 focus:tw-text-neutral-800 hover:tw-bg-neutral-200 tw-w-full tw-inline-flex tw-items-center tw-rounded-md data-[active=true]:tw-bg-neutral-200 data-[active=true]:tw-text-neutral-800"
+                            onclick="init_report(this,'customer-ledger'); return false;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor"
+                                class="tw-w-5 tw-h-5 tw-mr-2.5 tw-text-neutral-500 group-hover:tw-text-neutral-800">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                            <?php echo _l('report_customer_ledger'); ?>
+                        </a>
+                    </li>
                 </ul>
             </div>
             <div class="sm:tw-border-r sm:tw-border-solid sm:tw-border-neutral-200 tw-pr-10 tw-w-96">
@@ -300,6 +312,42 @@
                         </div>
                     </div>
                 </div>
+                <div id="ledger-filters" class="hide mbot15">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="ledger-from"
+                                class="control-label"><?php echo _l('report_sales_from_date'); ?></label>
+                            <div class="input-group date">
+                                <input type="text" class="form-control datepicker" id="ledger-from" name="ledger-from"
+                                    value="<?php echo _d(date('Y-m-01')); ?>">
+                                <div class="input-group-addon">
+                                    <i class="fa-regular fa-calendar calendar-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ledger-to"
+                                class="control-label"><?php echo _l('report_sales_to_date'); ?></label>
+                            <div class="input-group date">
+                                <input type="text" class="form-control datepicker" id="ledger-to" name="ledger-to"
+                                    value="<?php echo _d(date('Y-m-d')); ?>">
+                                <div class="input-group-addon">
+                                    <i class="fa-regular fa-calendar calendar-icon"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mtop10">
+                        <label for="ledger-customers" class="control-label"><?php echo _l('report_customer'); ?></label>
+                        <select name="ledger_customers[]" id="ledger-customers" class="form-control selectpicker"
+                            data-live-search="true" multiple
+                            data-none-selected-text="<?php echo _l('report_all_customers'); ?>">
+                            <?php foreach ($customers as $customer) { ?>
+                                <option value="<?php echo $customer['userid']; ?>"><?php echo $customer['company']; ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
         <?php if (total_rows(db_prefix() . 'invoices', ['status' => 5]) > 0) { ?>
@@ -328,6 +376,7 @@
                         <?php $this->load->view('admin/reports/includes/sales_estimates'); ?>
                         <?php $this->load->view('admin/reports/includes/sales_payments'); ?>
                         <?php $this->load->view('admin/reports/includes/sales_proposals'); ?>
+                        <?php $this->load->view('admin/reports/includes/sales_customer_ledger'); ?>
                     </div>
                 </div>
             </div>

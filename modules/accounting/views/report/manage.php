@@ -86,6 +86,8 @@
                       <p class="hide"><?php echo _l('exceptions_to_closing_date_note'); ?></p>
                       <a href="<?php echo admin_url('accounting/rp_general_ledger'); ?>"><h4 class="no-margin"><?php echo _l('general_ledger'); ?></h4></a>
                       <p><?php echo _l('general_ledger_note'); ?></p>
+                      <a href="<?php echo admin_url('accounting/rp_account_ledger'); ?>"><h4 class="no-margin"><?php echo _l('account_ledger'); ?></h4></a>
+                      <p><?php echo _l('account_ledger_note'); ?></p>
                       <a href="<?php echo admin_url('accounting/rp_journal'); ?>"><h4 class="no-margin"><?php echo _l('journal'); ?></h4></a>
                       <p><?php echo _l('journal_note'); ?></p>
                       <a href="<?php echo admin_url('accounting/rp_profit_and_loss_comparison'); ?>"><h4 class="no-margin"><?php echo _l('profit_and_loss_comparison'); ?></h4></a>

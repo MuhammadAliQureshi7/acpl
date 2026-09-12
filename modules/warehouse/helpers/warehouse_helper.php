@@ -1739,7 +1739,7 @@ function render_delivery_status_html($id, $type, $status_value = '', $ChangeStat
 
     if ($canChangeStatus && $ChangeStatus) {
         $outputStatus .= '<div class="dropdown inline-block mleft5 table-export-exclude">';
-        $outputStatus .= '<a href="#" style="font-size:14px;vertical-align:middle;" class="dropdown-toggle text-dark" id="tableTaskStatus-' . $id . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+        $outputStatus .= '<a href="#" style="font-size:11.2px;vertical-align:middle;" class="dropdown-toggle text-dark" id="tableTaskStatus-' . $id . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
         $outputStatus .= '<span data-toggle="tooltip" title="' . _l('ticket_single_change_status') . '"><i class="fa fa-caret-down" aria-hidden="true"></i></span>';
         $outputStatus .= '</a>';
 

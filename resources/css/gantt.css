@@ -11,19 +11,19 @@ body.gantt {
 
 .gantt .lower-text,
 .gantt .upper-text {
-  font-size: 13px;
+  font-size: 10.4px;
   fill: theme("colors.neutral.700");
   font-weight: 500;
 }
 
 .gantt .bar-label {
-  font-size: 13px;
+  font-size: 10.4px;
   font-weight: 300;
 }
 
 .gantt .bar-label.big {
   fill: theme("colors.neutral.900");
-  font-size: 13px;
+  font-size: 10.4px;
   font-weight: 300;
 }
 

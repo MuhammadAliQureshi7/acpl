@@ -247,6 +247,47 @@ class Reports extends AdminController
         return $this->reports_model->build_sales_detail_report_html($rows, $group_by, $currency);
     }
 
+    /**
+     * Individual customer ledger report.
+     * Invoices are debits, payments received and credit notes are credits.
+     * Filters: ledger_from, ledger_to, report_customers
+     */
+    public function customer_ledger()
+    {
+        if (!$this->input->is_ajax_request()) {
+            return;
+        }
+
+        $this->load->model('currencies_model');
+        $currency = $this->currencies_model->get_base_currency();
+
+        $from = to_sql_date($this->input->post('ledger_from'));
+        $to   = to_sql_date($this->input->post('ledger_to'));
+
+        if ($from == '') {
+            $from = null;
+            $to   = null;
+        } elseif ($to == '') {
+            $to = null;
+        }
+
+        if ($from === null) {
+            $period = _l('report_sales_months_all_time');
+        } elseif ($to === null) {
+            $period = _l('report_sales_from_date') . ': ' . _d($from);
+        } else {
+            $period = _d($from) . ' - ' . _d($to);
+        }
+
+        $customers = $this->input->post('report_customers');
+        $customers = is_array($customers) ? array_map('intval', $customers) : [];
+
+        $ledgers = $this->reports_model->get_customer_ledger($customers, $from, $to);
+
+        echo $this->reports_model->build_customer_ledger_report_html($ledgers, $currency, $period);
+        die();
+    }
+
     public function payments_received()
     {
         if ($this->input->is_ajax_request()) {

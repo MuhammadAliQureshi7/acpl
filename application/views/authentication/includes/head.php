@@ -17,7 +17,7 @@
     }
 
     body>* {
-        font-size: 14px;
+        font-size: 11.2px;
     }
 
     body {

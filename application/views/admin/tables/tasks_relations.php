@@ -177,7 +177,7 @@ return App_table::find('related_tasks')
 
             if ($canChangeStatus) {
                 $outputStatus .= '<div class="dropdown inline-block mleft5 table-export-exclude">';
-                $outputStatus .= '<a href="#" style="font-size:14px;vertical-align:middle;" class="dropdown-toggle text-dark" id="tableTaskStatus-' . $aRow['id'] . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+                $outputStatus .= '<a href="#" style="font-size:11.2px;vertical-align:middle;" class="dropdown-toggle text-dark" id="tableTaskStatus-' . $aRow['id'] . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
                 $outputStatus .= '<span data-toggle="tooltip" title="' . _l('ticket_single_change_status') . '"><i class="fa-solid fa-chevron-down"></i></span>';
                 $outputStatus .= '</a>';
 
@@ -210,7 +210,7 @@ return App_table::find('related_tasks')
 
             if (staff_can('edit',  'tasks') && $aRow['status'] != Tasks_model::STATUS_COMPLETE) {
                 $outputPriority .= '<div class="dropdown inline-block mleft5 table-export-exclude">';
-                $outputPriority .= '<a href="#" style="font-size:14px;vertical-align:middle;" class="dropdown-toggle text-dark" id="tableTaskPriority-' . $aRow['id'] . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+                $outputPriority .= '<a href="#" style="font-size:11.2px;vertical-align:middle;" class="dropdown-toggle text-dark" id="tableTaskPriority-' . $aRow['id'] . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
                 $outputPriority .= '<span data-toggle="tooltip" title="' . _l('task_single_priority') . '"><i class="fa-solid fa-chevron-down"></i></span>';
                 $outputPriority .= '</a>';
 
